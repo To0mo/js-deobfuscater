@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate AST Deobfuscator v10 (Dynamic Unpacker)</title>
+    <title>Ultimate AST Deobfuscator v11 (The Silver Bullet)</title>
     
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
@@ -30,7 +30,7 @@
 <body>
 
 <div class="container">
-    <h1>Ultimate AST Deobfuscator v10 (Dynamic Unpacker)</h1>
+    <h1>Ultimate AST Deobfuscator v11 (The Silver Bullet)</h1>
     
     <div class="controls">
         <button id="runBtn" onclick="runDeobfuscator()" disabled>システム起動中...</button>
@@ -39,7 +39,7 @@
 
     <div class="grid">
         <textarea id="input" spellcheck="false" placeholder="/* ここに難読化コードを貼り付け */"></textarea>
-        <textarea id="output" spellcheck="false" readonly placeholder="/* 解析結果がここに表示されます */"></textarea>
+        <textarea id="output" spellcheck="false" readonly placeholder="/* 解析結果がここに表示されます (ファイルの末尾を確認してください) */"></textarea>
     </div>
 </div>
 
@@ -83,50 +83,39 @@ async function runDeobfuscator() {
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
     let win = iframe.contentWindow;
+    let doc = iframe.contentDocument;
 
     try {
         const babelTransform = window.Babel.transform;
-        
+
         // =====================================================================
-        // Phase 1: 動的ペイロード抽出 (eval / Function のフックによる横取り)
+        // Phase 1: サンドボックス構築とパッカーのネイティブ実行
         // =====================================================================
-        log("[*] Phase 1/7: 自己解凍ペイロードの動的抽出 (Unpacking)..."); await yieldThread();
+        log("[*] Phase 1/6: サンドボックス構築とパッカーのネイティブ実行..."); await yieldThread();
         
-        win.eval(`
-            window.__extracted = [];
-            const _origEval = window.eval;
-            window.eval = function(c) { 
-                window.__extracted.push(String(c)); 
-                try { return _origEval(c); } catch(e){} 
-            };
-            const _origFunc = window.Function;
-            window.Function = function(...args) { 
-                if(args.length > 0) window.__extracted.push(String(args[args.length - 1])); 
-                try { return _origFunc.apply(this, args); } catch(e){} 
-            };
-            window.setTimeout = window.setInterval = function(c) { if(typeof c === 'string') window.__extracted.push(c); };
-            window.document.write = function(c) { window.__extracted.push(String(c)); };
-            window.console.log = window.alert = window.confirm = window.prompt = function(){};
+        // 悪意のある処理を無効化し、外部からスクリプトスコープにアクセスできるヘルパーを注入
+        doc.write(`
+            <script>
+                window.console = new Proxy({}, { get: () => function(){} });
+                window.alert = window.confirm = window.prompt = function(){};
+                window.setTimeout = window.setInterval = function(){};
+                window.document.write = function(){};
+                window.__eval = function(expr) {
+                    try { return eval(expr); } catch(e) { return null; }
+                };
+            <\/script>
         `);
 
-        // 元のコードを*一切いじらず*そのまま実行し、改ざん検知をパスさせる
-        try { win.eval(code); } catch(e) {}
-
-        if (win.__extracted && win.__extracted.length > 0) {
-            // パッカーが多重化されている場合を考慮し、最も文字数の多いものを真のコードとする
-            let maxCode = win.__extracted.reduce((a, b) => a.length > b.length ? a : b, "");
-            if (maxCode.length > 20) {
-                code = maxCode;
-                log(`[+] 成功: 内部ペイロードを横取りしました (${code.length} bytes)`, 'warning');
-            }
-        } else {
-            log("[-] 自己解凍処理は検知されませんでした。静的解析に移行します。");
-        }
+        // 入力されたコードを一切改変せずに流し込む (アンチ改ざんを100%回避)
+        let escapedCode = code.replace(/<\/script>/gi, '<\\/script>');
+        doc.write(`<script>${escapedCode}<\/script>`);
+        doc.close();
+        await yieldThread();
 
         // =====================================================================
         // Phase 2: 定数畳み込み (Constant Folding)
         // =====================================================================
-        log("[*] Phase 2/7: 定数畳み込みによる数式・文字列の計算..."); await yieldThread();
+        log("[*] Phase 2/6: ASTの静的定数畳み込み..."); await yieldThread();
         code = babelTransform(code, {
             plugins: [function(babel) {
                 const t = babel.types;
@@ -147,9 +136,93 @@ async function runDeobfuscator() {
         }).code;
 
         // =====================================================================
-        // Phase 3: ASTの正規化
+        // Phase 3: 動的 Brute-force 式評価 (ネストの完全解体)
         // =====================================================================
-        log("[*] Phase 3/7: ASTの正規化..."); await yieldThread();
+        log("[*] Phase 3/6: 生きたデコーダへの直接問い合わせ (Brute-force)..."); await yieldThread();
+        
+        let prevCode = "";
+        let iterations = 0;
+        
+        // ネストされた暗号化 ( _0x123(_0x456(1)) など ) を完全に解くため、変更がなくなるまでループ
+        while (prevCode !== code && iterations < 5) {
+            prevCode = code;
+            iterations++;
+            code = babelTransform(code, {
+                plugins: [function(babel) {
+                    const t = babel.types;
+
+                    // ASTノードを評価用文字列に再構築
+                    function nodeToCode(node) {
+                        if (!node) return null;
+                        if (node.type === 'Identifier') return node.name;
+                        if (node.type === 'StringLiteral') return JSON.stringify(node.value);
+                        if (node.type === 'NumericLiteral') return node.value;
+                        if (node.type === 'BooleanLiteral') return node.value;
+                        if (node.type === 'MemberExpression') {
+                            let obj = nodeToCode(node.object);
+                            if (!obj) return null;
+                            if (node.computed) {
+                                let prop = nodeToCode(node.property);
+                                if (!prop) return null; return `${obj}[${prop}]`;
+                            } else {
+                                return `${obj}.${node.property.name}`;
+                            }
+                        }
+                        if (node.type === 'CallExpression') {
+                            let callee = nodeToCode(node.callee);
+                            if (!callee) return null;
+                            let args = node.arguments.map(nodeToCode);
+                            if (args.includes(null)) return null;
+                            return `${callee}(${args.join(',')})`;
+                        }
+                        if (node.type === 'UnaryExpression') {
+                            let arg = nodeToCode(node.argument);
+                            if (!arg) return null; return `${node.operator}${arg}`;
+                        }
+                        if (node.type === 'ArrayExpression') {
+                            let elems = node.elements.map(nodeToCode);
+                            if (elems.includes(null)) return null; return `[${elems.join(',')}]`;
+                        }
+                        return null;
+                    }
+
+                    const resolveDynamic = (path) => {
+                        let codeSnippet = nodeToCode(path.node);
+                        if (!codeSnippet) return;
+                        
+                        // ネイティブAPIやプログラム本来の副作用（console.log等）は絶対に横取りしない
+                        if (/^(console|document|window|alert|prompt|confirm|setTimeout|setInterval|Math|Date|String|Number|Array|Object|RegExp)\b/.test(codeSnippet)) return;
+                        
+                        try {
+                            // サンドボックスのデコーダに計算させる
+                            let res = win.__eval(codeSnippet);
+                            if (res !== null && res !== undefined && typeof res !== 'function' && typeof res !== 'object') {
+                                if (typeof res === 'string') path.replaceWith(t.stringLiteral(res));
+                                else if (typeof res === 'number') path.replaceWith(t.numericLiteral(res));
+                                else if (typeof res === 'boolean') path.replaceWith(t.booleanLiteral(res));
+                            }
+                        } catch(e) {}
+                    };
+
+                    return {
+                        visitor: {
+                            CallExpression(path) { resolveDynamic(path); },
+                            MemberExpression(path) {
+                                // 親が呼び出しの場合は、部分的な置換を避けて全体で評価させる
+                                if (path.parent.type === 'CallExpression' && path.parent.callee === path.node) return;
+                                if (path.parent.type === 'AssignmentExpression' && path.parent.left === path.node) return;
+                                resolveDynamic(path);
+                            }
+                        }
+                    };
+                }], retainLines: false
+            }).code;
+        }
+
+        // =====================================================================
+        // Phase 4: ASTの正規化
+        // =====================================================================
+        log("[*] Phase 4/6: ASTの正規化..."); await yieldThread();
         code = babelTransform(code, {
             plugins: [function(babel) {
                 const t = babel.types;
@@ -175,102 +248,14 @@ async function runDeobfuscator() {
         }).code;
 
         // =====================================================================
-        // Phase 4: 動的関数評価と文字列復元 (残存する難読化関数の処理)
+        // Phase 5: デッドコード（ゴミ箱）の清掃
         // =====================================================================
-        log("[*] Phase 4/7: エイリアス追跡と残存文字列の復元..."); await yieldThread();
-        win.eval(`
-            for(let k in window) { if(k !== 'eval' && k !== 'console' && k !== 'document') try { delete window[k]; } catch(e){} }
-        `);
-        try { win.eval(code); } catch(e) {}
-
-        function getOriginalName(path, name) {
-            let current = name;
-            let binding = path.scope.getBinding(current);
-            while (binding && binding.path.isVariableDeclarator() && binding.path.node.init && binding.path.node.init.type === 'Identifier') {
-                current = binding.path.node.init.name;
-                binding = path.scope.getBinding(current);
-            }
-            return current;
-        }
-
-        code = babelTransform(code, {
-            plugins: [function(babel) {
-                const t = babel.types;
-                return {
-                    visitor: {
-                        CallExpression(path) {
-                            if (path.node.callee.type === 'Identifier') {
-                                const realName = getOriginalName(path, path.node.callee.name);
-                                if (win[realName] && typeof win[realName] === 'function' && !/^(eval|setTimeout|setInterval)$/.test(realName)) {
-                                    let args = [], canEval = true;
-                                    for (let arg of path.node.arguments) {
-                                        if (['StringLiteral', 'NumericLiteral', 'BooleanLiteral'].includes(arg.type)) args.push(arg.value);
-                                        else if (arg.type === 'UnaryExpression' && arg.argument.type === 'NumericLiteral') args.push(arg.operator === '-' ? -arg.argument.value : arg.argument.value);
-                                        else { canEval = false; break; }
-                                    }
-                                    if (canEval) {
-                                        try {
-                                            const res = win[realName](...args);
-                                            if (typeof res === 'string') path.replaceWith(t.stringLiteral(res));
-                                            else if (typeof res === 'number') path.replaceWith(t.numericLiteral(res));
-                                            else if (typeof res === 'boolean') path.replaceWith(t.booleanLiteral(res));
-                                        } catch(e) {}
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-            }], retainLines: false
-        }).code;
-
-        // =====================================================================
-        // Phase 5: オブジェクトカプセル化の解体
-        // =====================================================================
-        log("[*] Phase 5/7: カプセル化されたオブジェクトの解体..."); await yieldThread();
-        code = babelTransform(code, {
-            plugins: [function(babel) {
-                const t = babel.types;
-                return {
-                    visitor: {
-                        VariableDeclarator(path) {
-                            if (path.node.id.type === 'Identifier' && path.node.init && path.node.init.type === 'ObjectExpression') {
-                                const binding = path.scope.getBinding(path.node.id.name);
-                                if (!binding) return;
-                                let props = {}, canRemove = true;
-
-                                path.node.init.properties.forEach(p => {
-                                    if (p.type === 'ObjectProperty' && (p.key.type === 'StringLiteral' || p.key.type === 'Identifier')) {
-                                        props[p.key.name || p.key.value] = p.value;
-                                    }
-                                });
-
-                                binding.referencePaths.forEach(refPath => {
-                                    const parent = refPath.parentPath;
-                                    if (parent.isMemberExpression() && parent.node.object === refPath.node) {
-                                        let key = parent.node.computed ? (parent.node.property.type === 'StringLiteral' ? parent.node.property.value : null) : parent.node.property.name;
-                                        if (key && props[key] && ['StringLiteral', 'NumericLiteral'].includes(props[key].type)) {
-                                            parent.replaceWith(t.cloneNode(props[key]));
-                                        } else { canRemove = false; }
-                                    } else { canRemove = false; }
-                                });
-                                if (canRemove && path.node.init.properties.length > 0) path.remove();
-                            }
-                        }
-                    }
-                };
-            }], retainLines: false
-        }).code;
-
-        // =====================================================================
-        // Phase 6: デッドコード（ゴミ箱）の清掃
-        // =====================================================================
-        log("[*] Phase 6/7: 不要変数の削除 (Dead Code Elimination)..."); await yieldThread();
+        log("[*] Phase 5/6: 不要変数の削除 (Dead Code Elimination)..."); await yieldThread();
         code = babelTransform(code, {
             plugins: [function() {
                 return {
                     visitor: {
-                        "FunctionDeclaration|VariableDeclarator"(path) {
+                        "VariableDeclarator"(path) {
                             if (path.node.id && path.node.id.name) {
                                 const binding = path.scope.getBinding(path.node.id.name);
                                 if (binding && !binding.referenced && !binding.constantViolations.length) path.remove();
@@ -282,13 +267,13 @@ async function runDeobfuscator() {
         }).code;
 
         // =====================================================================
-        // Phase 7: フォーマット
+        // Phase 6: フォーマット
         // =====================================================================
-        log("[*] Phase 7/7: コードの美化フォーマット..."); await yieldThread();
+        log("[*] Phase 6/6: コードの美化フォーマット..."); await yieldThread();
         code = js_beautify(code, { indent_size: 4, space_in_empty_paren: true, preserve_newlines: false });
         
         document.getElementById('output').value = code;
-        log("✅ 解読完了！ Outputを確認してください。");
+        log("✅ 解読完了！ 出力ファイルの【一番下】に本物のコードが出現します。", 'warning');
 
     } catch (e) {
         log(`❌ 致命的なエラーが発生しました:\n${e.name}: ${e.message}`, 'error');
