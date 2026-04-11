@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate AST Deobfuscator v9 (The Final)</title>
+    
+    <!-- ▼▼▼ ご指摘いただいた、最も確実な静的ロード方式 ▼▼▼ -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
+    <!-- ▲▲▲ これで確実にライブラリが読み込まれます ▲▲▲ -->
+    
+    <style>
+        :root { --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9; --accent: #58a6ff; --success: #3fb950; --error: #f85149; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 26px; color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 75vh; }
+        textarea {
+            width: 100%; height: 100%; font-family: 'Consolas', monospace; padding: 15px;
+            background: #010409; color: #7ee787; border: 1px solid var(--border); border-radius: 8px;
+            resize: none; box-sizing: border-box; font-size: 14px; line-height: 1.5; outline: none;
+        }
+        textarea:focus { border-color: var(--accent); }
+        .controls { padding: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        button { background-color: var(--success); color: #fff; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; align-self: flex-start; transition: 0.2s; }
+        button:hover:not(:disabled) { filter: brightness(1.2); }
+        button:disabled { background-color: var(--border); color: #8b949e; cursor: not-allowed; }
+        #log { font-family: monospace; font-size: 13px; color: var(--accent); white-space: pre-wrap; max-height: 200px; overflow-y: auto; padding: 10px; background: #010409; border-radius: 6px; border: 1px solid var(--border);}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Ultimate AST Deobfuscator v9 (最終安定版)</h1>
+    
+    <div class="controls">
+        <button id="runBtn" onclick="runDeobfuscator()" disabled>システム起動中...</button>
+        <div id="log"></div>
+    </div>
+
+    <div class="grid">
+        <textarea id="input" spellcheck="false" placeholder="/* ここに難読化コードを貼り付け */"></textarea>
+        <textarea id="output" spellcheck="false" readonly placeholder="/* 解析結果がここに表示されます */"></textarea>
+    </div>
+</div>
+
+<script>
+const logEl = document.getElementById('log');
+const btn = document.getElementById('runBtn');
+
+function log(msg, isError = false) {
+    logEl.innerHTML += `<span style="color: ${isError ? 'var(--error)' : 'inherit'}">${msg}</span>\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+// 初期化処理
+window.onload = function() {
+    logEl.innerHTML = "";
+    if (typeof Babel !== 'undefined' && typeof js_beautify !== 'undefined') {
+        log("✅ 全システムの起動が完了しました。");
+        btn.disabled = false;
+        btn.innerText = "Deobfuscate 実行";
+    } else {
+        log("❌ 致命的エラー: ライブラリの読み込みに失敗しました。", true);
+        log("※ ブラウザのコンソール(F12)で詳細なエラーを確認してください。", true);
+    }
+};
+
+const yieldThread = () => new Promise(resolve => setTimeout(resolve, 10));
+
+async function runDeobfuscator() {
+    btn.disabled = true;
+    btn.innerText = "解析中...";
+    logEl.innerHTML = "";
+    document.getElementById('output').value = "";
+
+    let code = document.getElementById('input').value;
+    if (!code.trim()) { 
+        log("❌ エラー: コードが入力されていません。", true); 
+        btn.disabled = false; btn.innerText = "Deobfuscate 実行"; 
+        return; 
+    }
+
+    let iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    let win = iframe.contentWindow;
+
+    try {
+        const babelTransform = window.Babel.transform;
+        
+        log("[*] Phase 1/6: ASTの正規化..."); await yieldThread();
+        code = babelTransform(code, {
+            plugins: [function(babel) {
+                const t = babel.types;
+                return {
+                    visitor: {
+                        ExpressionStatement(path) {
+                            if (path.node.expression && path.node.expression.type === 'SequenceExpression') {
+                                path.replaceWithMultiple(path.node.expression.expressions.map(e => t.expressionStatement(e)));
+                            }
+                        },
+                        MemberExpression(path) {
+                            if (path.node.computed && path.node.property.type === 'StringLiteral') {
+                                const prop = path.node.property.value;
+                                if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(prop)) {
+                                    path.node.property = t.identifier(prop);
+                                    path.node.computed = false;
+                                }
+                            }
+                        }
+                    }
+                };
+            }], retainLines: false
+        }).code;
+
+        log("[*] Phase 2/6: 動的解析用サンドボックスの構築..."); await yieldThread();
+        win.eval(`
+            window.console = new Proxy({}, { get: () => function(){} });
+            window.alert = function(){};
+            window.document = { createElement: function(){ return {}; }, body: { appendChild: function(){} } };
+        `);
+        try { win.eval(code); } catch(e) {}
+
+        log("[*] Phase 3/6: エイリアス追跡と文字列の復元..."); await yieldThread();
+        function getOriginalName(path, name) {
+            let current = name;
+            let binding = path.scope.getBinding(current);
+            while (binding && binding.path.isVariableDeclarator()) {
+                const init = binding.path.node.init;
+                if (init && init.type === 'Identifier') {
+                    current = init.name;
+                    binding = path.scope.getBinding(current);
+                } else break;
+            }
+            return current;
+        }
+
+        code = babelTransform(code, {
+            plugins: [function(babel) {
+                const t = babel.types;
+                return {
+                    visitor: {
+                        CallExpression(path) {
+                            if (path.node.callee.type === 'Identifier') {
+                                const realName = getOriginalName(path, path.node.callee.name);
+                                if (win[realName] && typeof win[realName] === 'function' && !/^(eval|setTimeout|setInterval)$/.test(realName)) {
+                                    let args = [];
+                                    let canEval = true;
+                                    for (let arg of path.node.arguments) {
+                                        if (arg.type === 'StringLiteral' || arg.type === 'NumericLiteral') args.push(arg.value);
+                                        else if (arg.type === 'UnaryExpression' && arg.argument.type === 'NumericLiteral') {
+                                            args.push(arg.operator === '-' ? -arg.argument.value : arg.argument.value);
+                                        } else { canEval = false; break; }
+                                    }
+                                    if (canEval) {
+                                        try {
+                                            const res = win[realName](...args);
+                                            if (typeof res === 'string') path.replaceWith(t.stringLiteral(res));
+                                            else if (typeof res === 'number') path.replaceWith(t.numericLiteral(res));
+                                        } catch(e) {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }], retainLines: false
+        }).code;
+
+        log("[*] Phase 4/6: カプセル化されたオブジェクトの解体..."); await yieldThread();
+        code = babelTransform(code, {
+            plugins: [function(babel) {
+                const t = babel.types;
+                return {
+                    visitor: {
+                        VariableDeclarator(path) {
+                            if (path.node.id.type === 'Identifier' && path.node.init && path.node.init.type === 'ObjectExpression') {
+                                const objName = path.node.id.name;
+                                const binding = path.scope.getBinding(objName);
+                                if (!binding) return;
+
+                                let properties = {};
+                                let canSafelyRemove = true;
+
+                                path.node.init.properties.forEach(prop => {
+                                    if (prop.type === 'ObjectProperty' && (prop.key.type === 'StringLiteral' || prop.key.type === 'Identifier')) {
+                                        let key = prop.key.name || prop.key.value;
+                                        properties[key] = prop.value;
+                                    }
+                                });
+
+                                binding.referencePaths.forEach(refPath => {
+                                    const parent = refPath.parentPath;
+                                    if (parent.isMemberExpression() && parent.node.object === refPath.node) {
+                                        let key = parent.node.computed ? (parent.node.property.type === 'StringLiteral' ? parent.node.property.value : null) : parent.node.property.name;
+                                        
+                                        if (key && properties[key]) {
+                                            const valNode = properties[key];
+                                            if (valNode.type === 'StringLiteral' || valNode.type === 'NumericLiteral') {
+                                                parent.replaceWith(valNode);
+                                            } else { canSafelyRemove = false; }
+                                        } else { canSafelyRemove = false; }
+                                    } else { canSafelyRemove = false; }
+                                });
+                                if (canSafelyRemove) path.remove();
+                            }
+                        }
+                    }
+                };
+            }], retainLines: false
+        }).code;
+
+        log("[*] Phase 5/6: ゴミ箱の清掃 (不要変数の削除)..."); await yieldThread();
+        code = babelTransform(code, {
+            plugins: [function(babel) {
+                return {
+                    visitor: {
+                        "FunctionDeclaration|VariableDeclarator"(path) {
+                            if (path.node.id && path.node.id.name) {
+                                const binding = path.scope.getBinding(path.node.id.name);
+                                if (binding && !binding.referenced) path.remove();
+                            }
+                        }
+                    }
+                };
+            }], retainLines: false
+        }).code;
+
+        log("[*] Phase 6/6: コードの美化フォーマット..."); await yieldThread();
+        code = js_beautify(code, { indent_size: 4, space_in_empty_paren: true, preserve_newlines: false });
+        
+        document.getElementById('output').value = code;
+        log("✅ 解読完了！ Outputを確認してください。");
+
+    } catch (e) {
+        log(`❌ 致命的なエラーが発生しました:\n${e.name}: ${e.message}`, true);
+    } finally {
+        if (iframe) document.body.removeChild(iframe);
+        btn.disabled = false;
+        btn.innerText = "Deobfuscate 実行";
+    }
+}
+</script>
+</body>
+</html>
