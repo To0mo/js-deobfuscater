@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate AST Deobfuscator v12 (Polling Loader)</title>
+    <title>Ultimate AST Deobfuscator v10 (The True Final)</title>
     
-    <!-- 静的ロード方式でライブラリを読み込み -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
     
@@ -15,7 +14,11 @@
         .container { max-width: 1400px; margin: 0 auto; }
         h1 { font-size: 26px; color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 75vh; }
-        textarea { width: 100%; height: 100%; font-family: 'Consolas', monospace; padding: 15px; background: #010409; color: #7ee787; border: 1px solid var(--border); border-radius: 8px; resize: none; box-sizing: border-box; font-size: 14px; line-height: 1.5; outline: none; }
+        textarea {
+            width: 100%; height: 100%; font-family: 'Consolas', monospace; padding: 15px;
+            background: #010409; color: #7ee787; border: 1px solid var(--border); border-radius: 8px;
+            resize: none; box-sizing: border-box; font-size: 14px; line-height: 1.5; outline: none;
+        }
         textarea:focus { border-color: var(--accent); }
         .controls { padding: 20px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
         button { background-color: var(--success); color: #fff; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; align-self: flex-start; transition: 0.2s; }
@@ -27,11 +30,13 @@
 <body>
 
 <div class="container">
-    <h1>Ultimate AST Deobfuscator v12 (最終安定版)</h1>
+    <h1>Ultimate AST Deobfuscator v10 (最終完成版)</h1>
+    
     <div class="controls">
-        <button id="runBtn" onclick="runDeobfuscator()" disabled>ライブラリをロード中...</button>
+        <button id="runBtn" onclick="runDeobfuscator()" disabled>システム起動中...</button>
         <div id="log"></div>
     </div>
+
     <div class="grid">
         <textarea id="input" spellcheck="false" placeholder="/* ここに難読化コードを貼り付け */"></textarea>
         <textarea id="output" spellcheck="false" readonly placeholder="/* 解析結果がここに表示されます */"></textarea>
@@ -41,39 +46,21 @@
 <script>
 const logEl = document.getElementById('log');
 const btn = document.getElementById('runBtn');
-function log(msg, isError = false) { logEl.innerHTML += `<span style="color: ${isError ? 'var(--error)' : 'inherit'}">${msg}</span>\n`; logEl.scrollTop = logEl.scrollHeight; }
 
-// =================================================================
-// ▼▼▼ 新機能：ポーリング式ロードチェッカー ▼▼▼
-// =================================================================
+function log(msg, isError = false) {
+    logEl.innerHTML += `<span style="color: ${isError ? 'var(--error)' : 'inherit'}">${msg}</span>\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
 window.onload = function() {
-    log("[*] 外部ライブラリの読み込みを待機しています...");
-
-    const maxWaitTime = 10000; // 10秒でタイムアウト
-    const checkInterval = 100;  // 0.1秒ごとに確認
-    let timeWaited = 0;
-
-    const intervalId = setInterval(() => {
-        // Babelとjs_beautifyがグローバル空間で使えるようになったか確認
-        if (typeof Babel !== 'undefined' && typeof js_beautify !== 'undefined') {
-            clearInterval(intervalId); // 確認ループを停止
-            log("✅ 全システムの起動が完了しました。");
-            btn.disabled = false;
-            btn.innerText = "Deobfuscate 実行";
-            return;
-        }
-
-        timeWaited += checkInterval;
-        if (timeWaited >= maxWaitTime) {
-            clearInterval(intervalId); // タイムアウトで停止
-            log("❌ タイムアウト: ライブラリの読み込みに失敗しました。", true);
-            log("   考えられる原因:", true);
-            log("   1. ネットワーク接続が不安定です。", true);
-            log("   2. 広告ブロッカーがスクリプトをブロックしています。", true);
-            log("   3. ファイアウォールがCDNへのアクセスを制限しています。", true);
-            btn.innerText = "ロード失敗";
-        }
-    }, checkInterval);
+    logEl.innerHTML = "";
+    if (typeof Babel !== 'undefined' && typeof js_beautify !== 'undefined') {
+        log("✅ 全システムの起動が完了しました。");
+        btn.disabled = false;
+        btn.innerText = "Deobfuscate 実行";
+    } else {
+        log("❌ 致命的エラー: ライブラリの読み込みに失敗しました。", true);
+    }
 };
 
 const yieldThread = () => new Promise(resolve => setTimeout(resolve, 10));
@@ -88,23 +75,17 @@ async function runDeobfuscator() {
     try {
         const babelTransform = window.Babel.transform;
         
-        log("[*] Phase 1: 静的解析 (数式・型変換の解読)..."); await yieldThread();
-        code = babelTransform(code, { plugins: [function({types: t}) { return {
-            visitor: {
-                "UnaryExpression|BinaryExpression|MemberExpression|CallExpression"(path) {
-                    try {
-                        const { confident, value } = path.evaluate();
-                        if (confident && (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')) {
-                           path.replaceWith(t.valueToNode(value));
-                        }
-                    } catch (e) {}
-                }
-            }
-        }}]}).code;
+        log("[*] Phase 1/7: ASTの正規化..."); await yieldThread();
+        code = babelTransform(code, { plugins: [function({types: t}) { return { visitor: {
+            ExpressionStatement(path) { if (path.node.expression.type === 'SequenceExpression') path.replaceWithMultiple(path.node.expression.expressions.map(e => t.expressionStatement(e))) },
+            MemberExpression(path) { if (path.node.computed && path.node.property.type === 'StringLiteral' && /^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(path.node.property.value)) { path.node.property = t.identifier(path.node.property.value); path.node.computed = false; }}
+        }}}]}).code;
 
-        log("[*] Phase 2: サンドボックス構築 & 動的解析..."); await yieldThread();
-        win.eval(`window.console=new Proxy({},{get:()=>function(){}});`);
+        log("[*] Phase 2/7: サンドボックス構築..."); await yieldThread();
+        win.eval(`window.console=new Proxy({},{get:()=>function(){}});window.alert=function(){};window.document={createElement:function(){return{}},body:{appendChild:function(){}}};`);
         try { win.eval(code); } catch(e) {}
+
+        log("[*] Phase 3/7: 文字列復元..."); await yieldThread();
         function getOriginalName(path, name) { let c = name, b = path.scope.getBinding(c); while (b && b.path.isVariableDeclarator() && b.path.node.init.type === 'Identifier') { c = b.path.node.init.name; b = path.scope.getBinding(c); } return c; }
         code = babelTransform(code, { plugins: [function({types: t}) { return { visitor: { CallExpression(path) {
             if (path.node.callee.type !== 'Identifier') return;
@@ -117,25 +98,61 @@ async function runDeobfuscator() {
                 else { canEval = false; break; }
             }
             if (canEval) { try { const res = win[realName](...args); if (typeof res === 'string') path.replaceWith(t.stringLiteral(res)); else if (typeof res === 'number') path.replaceWith(t.numericLiteral(res)); } catch (e) {} }
-        }}}}]).code;
+        }}}}}).code;
 
-        log("[*] Phase 3: アンチ解析ブロック除去..."); await yieldThread();
+        // =================================================================
+        // ▼▼▼ 新機能：アンチ解析ブロック除去エンジン ▼▼▼
+        // =================================================================
+        log("[*] Phase 4/7: アンチ解析ブロックの除去..."); await yieldThread();
         code = babelTransform(code, { plugins: [function({types: t}) { return { visitor: {
             ExpressionStatement(path) {
+                // (function(){...})(); というIIFE(即時実行関数)を探す
                 if (path.node.expression.type !== 'CallExpression' || path.node.expression.callee.type !== 'FunctionExpression') return;
                 const funcBody = path.node.expression.callee.body.body;
-                if (funcBody.some(node => node.type === 'WhileStatement' && node.test.type === 'UnaryExpression')) path.remove();
+                if (funcBody.length === 0) return;
+
+                // 関数の中に while(!![]) があるか確認
+                const hasWhileTrueLoop = funcBody.some(node => 
+                    node.type === 'WhileStatement' &&
+                    node.test.type === 'UnaryExpression' && node.test.operator === '!' &&
+                    node.test.argument.type === 'UnaryExpression' && node.test.argument.operator === '!' &&
+                    node.test.argument.argument.type === 'ArrayExpression' && node.test.argument.argument.elements.length === 0
+                );
+
+                if (hasWhileTrueLoop) {
+                    log("   -> Obfuscator特有の `while(!![])` ループを検知。ブロックごと削除します。");
+                    path.remove();
+                }
             }
         }}}]}).code;
 
-        log("[*] Phase 4: ゴミ掃除と整形..."); await yieldThread();
+        log("[*] Phase 5/7: オブジェクト解体..."); await yieldThread();
+        code = babelTransform(code, { plugins: [function({types: t}) { return { visitor: {
+            VariableDeclarator(path) {
+                if (path.node.id.type !== 'Identifier' || !path.node.init || path.node.init.type !== 'ObjectExpression') return;
+                const binding = path.scope.getBinding(path.node.id.name);
+                if (!binding) return;
+                let canSafelyRemove = true;
+                binding.referencePaths.forEach(p => { if (!p.parentPath.isMemberExpression()) canSafelyRemove = false; });
+                if (canSafelyRemove) {
+                    const properties = {};
+                    path.node.init.properties.forEach(prop => { if (prop.type === 'ObjectProperty') properties[prop.key.value || prop.key.name] = prop.value; });
+                    binding.referencePaths.forEach(p => { const parent = p.parentPath; const key = parent.node.property.value || parent.node.property.name; if (properties[key]) parent.replaceWith(properties[key]); });
+                    path.remove();
+                }
+            }
+        }}}]}).code;
+
+        log("[*] Phase 6/7: ゴミ掃除..."); await yieldThread();
         code = babelTransform(code, { plugins: [function({types: t}) { return { visitor: {
             "FunctionDeclaration|VariableDeclarator"(path) { if (path.node.id) { const binding = path.scope.getBinding(path.node.id.name); if (binding && !binding.referenced) path.remove(); }}
         }}}]}).code;
+
+        log("[*] Phase 7/7: コード整形..."); await yieldThread();
         code = js_beautify(code, { indent_size: 4, space_in_empty_paren: true, preserve_newlines: false });
         
         document.getElementById('output').value = code;
-        log("✅ 解読完了！");
+        log("✅ 解読完了！ これが本当の元のコードです。");
 
     } catch (e) {
         log(`❌ 致命的エラー:\n${e.name}: ${e.message}`, true);
