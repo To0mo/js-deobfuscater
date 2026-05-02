@@ -18,8 +18,8 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100dvh; /* iOS/Android対応の動的ビューポート高 */
-            position: fixed; /* スクロールバウンスを防止 */
+            height: 100dvh;
+            position: fixed; /* スクロールバウンスを完全に防止 */
             top: 0;
             left: 0;
             overflow: hidden !important; 
@@ -61,7 +61,7 @@
             border-radius: 8px; 
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
             overflow: hidden;
-            min-height: 0; /* 子要素のオーバーフローを許可 */
+            min-height: 0;
         }
         .window-header { 
             padding: 8px 15px; 
@@ -97,7 +97,7 @@
         /* ログウィンドウ */
         .log-container {
             padding: 0 15px 15px 15px;
-            height: 25dvh; /* 全体の25%の高さ */
+            height: 25dvh;
             display: flex;
             flex-shrink: 0;
         }
@@ -135,7 +135,7 @@
 </nav>
 
 <div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Packerの解除、AST文字列デコード、定数畳み込み、フォーマットを自動で深くまで反復実行します">
+    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="強力なAST計装とSandbox解析を用いてコードを復元します">
         <i class="bi bi-magic me-1"></i> Deep Auto
     </button>
     <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack</button>
@@ -224,72 +224,62 @@
         log("コードの整形が完了しました。", "success");
     });
 
-    // 2. 動的アンパッカー (堅牢化版)
+    // 2. AST計装型 動的アンパッカー (JSDefender キラー)
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
-            log("動的アンパッカー (Eval/Functionフック) を開始...", "info");
-            
+            log("動的アンパッカーを開始...", "info");
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
-            
+            const win = iframe.contentWindow;
+
             let payloads =[];
-
-            try {
-                const win = iframe.contentWindow;
-                win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
-                win.onerror = function() { return true; }; // エラーを抑止
-
-                // ペイロードが有効なJSか検証
-                function checkAndPush(payload) {
-                    if (typeof payload === 'string' && payload.length > 50) {
-                        try {
-                            Babel.transform(payload, { ast: true, code: false }); // 構文チェック
-                            payloads.push(payload);
-                        } catch(e) {}
-                    }
+            function checkAndPush(payload) {
+                if (typeof payload === 'string' && payload.length > 50) {
+                    try { Babel.transform(payload, { ast: true, code: false }); payloads.push(payload); } catch(e) {}
                 }
-
-                const origEval = win.eval;
-                win.eval = function(payload) {
-                    checkAndPush(payload);
-                    try { return origEval.apply(this, arguments); } catch(e){}
-                };
-
-                const origFunction = win.Function;
-                const hookedFunction = function(...args) {
-                    if (args.length > 0) checkAndPush(args[args.length - 1]);
-                    try { return origFunction.apply(this, args); } catch(e){}
-                };
-                win.Function = hookedFunction;
-                win.Function.prototype = origFunction.prototype;
-                win.Function.prototype.constructor = hookedFunction;
-                
-                const origWrite = win.document.write;
-                win.document.write = function(payload) {
-                    checkAndPush(payload);
-                    return origWrite.apply(this, arguments);
-                };
-
-                // Timer系の無効化
-                win.setTimeout = function(cb){ if(typeof cb === 'function') cb(); return 0; };
-                win.setInterval = function(){ return 0; };
-
-                const script = win.document.createElement('script');
-                script.textContent = code; // try-catchで囲まない(自己検証ハッシュの破壊を防ぐ)
-                win.document.body.appendChild(script);
-
-            } catch (err) {
-                log(`Sandbox実行エラー: ${err.message}`, "warning");
             }
+
+            win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
+            win.onerror = function() { return true; };
+            win.setTimeout = function(){ return 0; };
+            win.setInterval = function(){ return 0; };
+
+            win.__hook_eval__ = function(p) { checkAndPush(p); try{return win.eval(p);}catch(e){} };
+            win.eval = win.__hook_eval__;
+            
+            const origFunction = win.Function;
+            win.Function = function(...args) {
+                if (args.length > 0) checkAndPush(args[args.length - 1]);
+                try { return origFunction.apply(this, args); } catch(e){}
+            };
+            win.Function.prototype = origFunction.prototype;
+
+            const origWrite = win.document.write;
+            win.document.write = function(p) { checkAndPush(p); return origWrite.apply(this, arguments); };
+
+            // ASTでeval呼び出しを強制的にフック関数へ置換
+            let instrumentedCode = code;
+            try {
+                const ast = Babel.transform(code, {ast:true, code:false, parserOpts:{allowReturnOutsideFunction:true}}).ast;
+                Babel.traverse(ast, {
+                    CallExpression(path) {
+                        if (path.node.callee.name === 'eval') path.node.callee.name = '__hook_eval__';
+                    }
+                });
+                instrumentedCode = Babel.transformFromAst(ast, code, {}).code;
+            } catch(e) {}
+
+            const script = win.document.createElement('script');
+            script.textContent = instrumentedCode;
+            win.document.body.appendChild(script);
 
             setTimeout(() => {
                 document.body.removeChild(iframe);
                 if (payloads.length > 0) {
                     payloads.sort((a, b) => b.length - a.length);
-                    const bestPayload = payloads[0];
-                    log(`パッカーを解除しました (${bestPayload.length} bytes)`, "success");
-                    resolve(bestPayload);
+                    log(`パッカーを解除しました (${payloads[0].length} bytes)`, "success");
+                    resolve(payloads[0]);
                 } else {
                     resolve(code);
                 }
@@ -297,7 +287,7 @@
         });
     }
 
-    // 3. 強化版 ASTベースのデコーダー＆制御フロー平坦化解除
+    // 3. 強化版 ASTデコーダー (JS Confuser キラー)
     function decodeStringsAST(code) {
         let ast;
         try {
@@ -307,46 +297,55 @@
             return { code, changed: false };
         }
 
-        // ==========================================
-        // ASTを使って安全なセットアップコードを抽出
-        // ==========================================
-        let setupNodes =[];
-        ast.program.body.forEach(node => {
-            const nodeLength = node.end - node.start;
-            // 本編の巨大なノードは除外する (Obfuscator.ioの初期化・デコーダのみを抽出)
-            if (code.length > 1000 && (nodeLength > code.length * 0.5 || nodeLength > 6000)) return;
-            if (node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration' || node.type === 'ExpressionStatement') {
-                setupNodes.push(node);
+        // --- Step 1: 全ての関数・配列変数を強制的にグローバル露出させるASTを生成 ---
+        let exposeAst;
+        try {
+            exposeAst = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
+        } catch(e) { return { code, changed: false }; }
+
+        Babel.traverse(exposeAst, {
+            "FunctionDeclaration|FunctionExpression|ArrowFunctionExpression"(path) {
+                if (path.node.id && path.node.id.name) {
+                    const name = path.node.id.name;
+                    const expose = Babel.types.expressionStatement(
+                        Babel.types.assignmentExpression("=", Babel.types.memberExpression(Babel.types.identifier("window"), Babel.types.identifier("_fn_" + name)), Babel.types.identifier(name))
+                    );
+                    if (Babel.types.isBlockStatement(path.node.body)) {
+                        try { path.node.body.body.unshift(expose); } catch(e){}
+                    }
+                }
+            },
+            VariableDeclaration(path) {
+                if (Babel.types.isFor(path.parent)) return;
+                const exports =[];
+                path.node.declarations.forEach(decl => {
+                    if (Babel.types.isIdentifier(decl.id)) {
+                        exports.push(
+                            Babel.types.expressionStatement(
+                                Babel.types.assignmentExpression("=", Babel.types.memberExpression(Babel.types.identifier("window"), Babel.types.identifier("_var_" + decl.id.name)), Babel.types.identifier(decl.id.name))
+                            )
+                        );
+                    }
+                });
+                if (exports.length > 0) { try { path.insertAfter(exports); } catch(e){} }
+            },
+            "WhileStatement|ForStatement|DoWhileStatement"(path) {
+                const cnt = path.scope.generateUidIdentifier("loop_cnt");
+                path.insertBefore(Babel.types.variableDeclaration("let",[Babel.types.variableDeclarator(cnt, Babel.types.numericLiteral(0))]));
+                const limitCheck = Babel.types.ifStatement(
+                    Babel.types.binaryExpression(">", Babel.types.updateExpression("++", cnt), Babel.types.numericLiteral(50000)),
+                    Babel.types.throwStatement(Babel.types.newExpression(Babel.types.identifier("Error"),[Babel.types.stringLiteral("LoopLimit")]))
+                );
+                if (Babel.types.isBlockStatement(path.node.body)) {
+                    path.node.body.body.unshift(limitCheck);
+                } else {
+                    path.node.body = Babel.types.blockStatement([limitCheck, path.node.body]);
+                }
             }
         });
 
-        // 抽出したコードに、ASTを使って無限ループ防止のカウンタを強制注入する
-        let setupCode = "";
-        try {
-            const tempCode = Babel.transformFromAst(Babel.types.program(setupNodes), code, {ast: false, code: true}).code;
-            const loopLimitPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                            const cnt = path.scope.generateUidIdentifier("loop_cnt");
-                            path.insertBefore(t.variableDeclaration("let",[t.variableDeclarator(cnt, t.numericLiteral(0))]));
-                            const limitCheck = t.ifStatement(
-                                t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(100000)),
-                                t.throwStatement(t.newExpression(t.identifier("Error"), [t.stringLiteral("Infinite loop detected")]))
-                            );
-                            if (t.isBlockStatement(path.node.body)) {
-                                path.node.body.body.unshift(limitCheck);
-                            } else {
-                                path.node.body = t.blockStatement([limitCheck, path.node.body]);
-                            }
-                        }
-                    }
-                };
-            };
-            setupCode = Babel.transform(tempCode, { plugins: [loopLimitPlugin], parserOpts: { allowReturnOutsideFunction: true } }).code;
-        } catch (e) {
-            log("セットアップコードの生成に失敗", "warning");
-        }
+        let exposeCode = "";
+        try { exposeCode = Babel.transformFromAst(exposeAst, "", {}).code; } catch (e) {}
 
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
@@ -356,126 +355,51 @@
         try {
             win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
             win.setTimeout = function(){}; win.setInterval = function(){};
-            // 抽出・加工した安全なコードを実行（フリーズを100%防ぐ）
-            win.eval(setupCode);
-        } catch (e) {
-            // 無限ループ時はここでErrorがthrowされるため無視して続行可能
-        }
+            // 保護されたコードを実行し、関数/配列をメモリに構築
+            win.eval(exposeCode);
+        } catch (e) {}
 
         let replacedCount = 0;
         let foldedCount = 0;
 
+        // --- Step 2: 元のASTを探索し、関数呼び出しや配列アクセスを直接評価して置換 ---
         const deobfuscatePlugin = function({ types: t }) {
-            const proxyDict = {};
             return {
                 visitor: {
-                    VariableDeclarator(path) {
-                        // 1. 変数エイリアス解決
-                        if (t.isIdentifier(path.node.init)) {
-                            const binding = path.scope.getBinding(path.node.id.name);
-                            if (binding && binding.constant) {
-                                binding.referencePaths.forEach(refPath => {
-                                    refPath.replaceWith(t.identifier(path.node.init.name));
-                                    replacedCount++;
-                                });
-                            }
-                        } 
-                        // 2. プロキシ辞書構築 (難読化ラッパー関数・文字列マッピング)
-                        else if (t.isObjectExpression(path.node.init)) {
-                            const objName = path.node.id.name;
-                            proxyDict[objName] = {};
-                            path.node.init.properties.forEach(prop => {
-                                if (t.isObjectProperty(prop)) {
-                                    let keyName = prop.key.name || (t.isLiteral(prop.key) ? prop.key.value : null);
-                                    if (!keyName) return;
-                                    
-                                    if (t.isFunctionExpression(prop.value) || t.isArrowFunctionExpression(prop.value)) {
-                                        const body = prop.value.body;
-                                        if (t.isBlockStatement(body) && body.body.length === 1 && t.isReturnStatement(body.body[0])) {
-                                            proxyDict[objName][keyName] = { type: 'function', funcNode: prop.value };
-                                        } else if (!t.isBlockStatement(body)) {
-                                            proxyDict[objName][keyName] = { type: 'function_expr', expr: body, params: prop.value.params };
-                                        }
-                                    } else if (t.isStringLiteral(prop.value) || t.isNumericLiteral(prop.value)) {
-                                        proxyDict[objName][keyName] = { type: 'literal', valueNode: prop.value };
-                                    }
-                                }
-                            });
-                        }
-                    },
-                    
-                    // 3. プロキシプロパティのインライン化
-                    MemberExpression(path) {
-                        if (t.isIdentifier(path.node.object)) {
-                            const objName = path.node.object.name;
-                            let keyName = path.node.computed && t.isStringLiteral(path.node.property) ? path.node.property.value : (!path.node.computed && t.isIdentifier(path.node.property) ? path.node.property.name : null);
-                            
-                            if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                const entry = proxyDict[objName][keyName];
-                                if (entry.type === 'literal') {
-                                    path.replaceWith(t.cloneNode(entry.valueNode));
-                                    replacedCount++;
-                                }
-                            }
-                        }
-                    },
-                    
                     CallExpression(path) {
-                        // 4. 文字列デコーダー評価
                         if (t.isIdentifier(path.node.callee)) {
                             const funcName = path.node.callee.name;
-                            if (['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt', 'String', 'decodeURIComponent', 'escape', 'atob', 'btoa'].includes(funcName)) return;
-                            
                             const isLiteral = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
                             
                             if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
-                                const callCode = code.substring(path.node.start, path.node.end);
-                                try {
-                                    const res = win.eval(callCode);
-                                    if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; return; }
-                                    else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; return; }
-                                    else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; return; }
-                                } catch (e) {}
-                            }
-                        }
-
-                        // 5. プロキシ関数呼び出しのインライン化
-                        if (t.isMemberExpression(path.node.callee)) {
-                            const mem = path.node.callee;
-                            if (t.isIdentifier(mem.object)) {
-                                const objName = mem.object.name;
-                                let keyName = mem.computed && t.isStringLiteral(mem.property) ? mem.property.value : (!mem.computed && t.isIdentifier(mem.property) ? mem.property.name : null);
-                                
-                                if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                    const entry = proxyDict[objName][keyName];
-                                    if (entry.type === 'function' || entry.type === 'function_expr') {
-                                        let retNode = entry.type === 'function' ? entry.funcNode.body.body[0].argument : entry.expr;
-                                        let params = entry.type === 'function' ? entry.funcNode.params : entry.params;
-                                        const args = path.node.arguments;
-                                        const paramMap = {};
-                                        params.forEach((p, idx) => { if (args[idx]) paramMap[p.name] = args[idx]; });
-                                        
-                                        const replaceParams = (node) => {
-                                            if (!node) return null;
-                                            if (t.isIdentifier(node) && paramMap[node.name]) return t.cloneNode(paramMap[node.name], true);
-                                            const cloned = t.cloneNode(node, false);
-                                            for (let key in cloned) {
-                                                if (cloned[key] && typeof cloned[key] === 'object') {
-                                                    if (Array.isArray(cloned[key])) cloned[key] = cloned[key].map(n => replaceParams(n));
-                                                    else if (typeof cloned[key].type === 'string') cloned[key] = replaceParams(cloned[key]);
-                                                }
-                                            }
-                                            return cloned;
-                                        };
-                                        const inlined = replaceParams(retNode);
-                                        if (inlined) { path.replaceWith(inlined); replacedCount++; }
-                                    }
+                                if (typeof win["_fn_" + funcName] === 'function') {
+                                    try {
+                                        // 引数をシリアライズして呼び出し
+                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(path.node)]), "", {ast:false, code:true}).code;
+                                        const hookedCall = callCode.replace(funcName, "window._fn_" + funcName);
+                                        const res = win.eval(hookedCall);
+                                        if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; }
+                                        else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; }
+                                        else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; }
+                                    } catch(e) {}
                                 }
                             }
                         }
                     },
-                    
-                    // 6. 定数畳み込み
+                    MemberExpression(path) {
+                        if (t.isIdentifier(path.node.object) && t.isNumericLiteral(path.node.property)) {
+                            const arrName = path.node.object.name;
+                            const idx = path.node.property.value;
+                            if (win["_var_" + arrName] !== undefined && typeof win["_var_" + arrName] === 'object' && win["_var_" + arrName] !== null) {
+                                try {
+                                    const val = win["_var_" + arrName][idx];
+                                    if (typeof val === 'string') { path.replaceWith(t.stringLiteral(val)); replacedCount++; }
+                                    else if (typeof val === 'number') { path.replaceWith(t.numericLiteral(val)); replacedCount++; }
+                                    else if (typeof val === 'boolean') { path.replaceWith(t.booleanLiteral(val)); replacedCount++; }
+                                } catch(e){}
+                            }
+                        }
+                    },
                     BinaryExpression(path) {
                         try {
                             const evaluated = path.evaluate();
@@ -486,116 +410,63 @@
                             }
                         } catch(e){}
                     },
-
-                    // 7. 制御フロー平坦化の解除
                     WhileStatement(path) {
+                        // 制御フロー平坦化の解除 (単一変数の状態遷移)
                         const body = path.node.body;
                         if (!t.isBlockStatement(body)) return;
                         const switchStmt = body.body.find(n => t.isSwitchStatement(n));
-                        if (!switchStmt) return;
+                        if (!switchStmt || !t.isIdentifier(switchStmt.discriminant)) return;
                         
-                        // パターンA: 配列シフト型 (Obfuscator.io)
-                        if (t.isMemberExpression(switchStmt.discriminant) && t.isUpdateExpression(switchStmt.discriminant.property)) {
-                            const arrayName = switchStmt.discriminant.object.name;
-                            const binding = path.scope.getBinding(arrayName);
-                            if (binding && binding.path.isVariableDeclarator()) {
-                                const init = binding.path.node.init;
-                                let seq;
-                                const evalRes = binding.path.get('init').evaluate();
-                                if (evalRes.confident && Array.isArray(evalRes.value)) {
-                                    seq = evalRes.value;
-                                } else {
-                                    try { 
-                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {ast: false, code: true}).code;
-                                        seq = win.eval(codePart); 
-                                    } catch(e) {}
-                                }
-                                
-                                if (Array.isArray(seq)) {
-                                    const caseMap = {};
-                                    switchStmt.cases.forEach(c => {
-                                        if (c.test && (t.isStringLiteral(c.test) || t.isNumericLiteral(c.test))) {
-                                            caseMap[c.test.value] = c.consequent.filter(n => !t.isContinueStatement(n) && !t.isBreakStatement(n));
-                                        }
-                                    });
-                                    
-                                    let unflattened =[];
-                                    let valid = true;
-                                    seq.forEach(key => {
-                                        if (caseMap[key]) unflattened = unflattened.concat(caseMap[key]);
-                                        else valid = false;
-                                    });
-                                    
-                                    if (valid && unflattened.length > 0) {
-                                        path.replaceWithMultiple(unflattened);
-                                        replacedCount++;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // パターンB: 状態変数代入型 (Example 4対応)
-                        if (t.isIdentifier(switchStmt.discriminant)) {
-                            const stateVarName = switchStmt.discriminant.name;
-                            const binding = path.scope.getBinding(stateVarName);
-                            if (binding && binding.path.isVariableDeclarator()) {
-                                const initVal = binding.path.node.init;
-                                if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
-                                    let currentState = initVal.value;
-                                    const caseMap = {};
-                                    switchStmt.cases.forEach(c => {
-                                        if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
-                                            const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
-                                            let nextState = null;
-                                            const cleanStmts =[];
-                                            for (const stmt of stmts) {
-                                                // 直下の代入
-                                                if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) &&
-                                                    t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
-                                                    if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) {
-                                                        nextState = stmt.expression.right.value;
-                                                        continue; // 代入式は削除
-                                                    }
+                        const stateVarName = switchStmt.discriminant.name;
+                        const binding = path.scope.getBinding(stateVarName);
+                        if (binding && binding.path.isVariableDeclarator()) {
+                            const initVal = binding.path.node.init;
+                            if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
+                                let currentState = initVal.value;
+                                const caseMap = {};
+                                switchStmt.cases.forEach(c => {
+                                    if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
+                                        const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
+                                        let nextState = null;
+                                        const cleanStmts =[];
+                                        for (const stmt of stmts) {
+                                            if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) && t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
+                                                if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) {
+                                                    nextState = stmt.expression.right.value;
+                                                    continue;
                                                 }
-                                                // ブロック内の代入 (Example 4対策)
-                                                if (t.isBlockStatement(stmt)) {
-                                                    let innerNextState = null;
-                                                    const cleanInner =[];
-                                                    for (const inner of stmt.body) {
-                                                        if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) &&
-                                                            t.isIdentifier(inner.expression.left, { name: stateVarName })) {
-                                                            if (t.isNumericLiteral(inner.expression.right) || t.isStringLiteral(inner.expression.right)) {
-                                                                innerNextState = inner.expression.right.value;
-                                                                continue;
-                                                            }
-                                                        }
-                                                        cleanInner.push(inner);
-                                                    }
-                                                    if (innerNextState !== null) {
-                                                        nextState = innerNextState;
-                                                        stmt.body = cleanInner;
-                                                    }
-                                                }
-                                                cleanStmts.push(stmt);
                                             }
-                                            caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
+                                            if (t.isBlockStatement(stmt)) {
+                                                let innerNextState = null;
+                                                const cleanInner =[];
+                                                for (const inner of stmt.body) {
+                                                    if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) && t.isIdentifier(inner.expression.left, { name: stateVarName })) {
+                                                        if (t.isNumericLiteral(inner.expression.right) || t.isStringLiteral(inner.expression.right)) {
+                                                            innerNextState = inner.expression.right.value;
+                                                            continue;
+                                                        }
+                                                    }
+                                                    cleanInner.push(inner);
+                                                }
+                                                if (innerNextState !== null) { nextState = innerNextState; stmt.body = cleanInner; }
+                                            }
+                                            cleanStmts.push(stmt);
                                         }
-                                    });
-                                    
-                                    const unflattened =[];
-                                    let curr = currentState;
-                                    let visited = new Set();
-                                    
-                                    while (curr !== null && caseMap[curr] && !visited.has(curr)) {
-                                        visited.add(curr);
-                                        unflattened.push(...caseMap[curr].stmts);
-                                        curr = caseMap[curr].nextState;
+                                        caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
                                     }
-                                    
-                                    if (unflattened.length > 0) {
-                                        path.replaceWithMultiple(unflattened);
-                                        replacedCount++;
-                                    }
+                                });
+                                
+                                const unflattened =[];
+                                let curr = currentState;
+                                let visited = new Set();
+                                while (curr !== null && caseMap[curr] && !visited.has(curr)) {
+                                    visited.add(curr);
+                                    unflattened.push(...caseMap[curr].stmts);
+                                    curr = caseMap[curr].nextState;
+                                }
+                                if (unflattened.length > 0) {
+                                    path.replaceWithMultiple(unflattened);
+                                    replacedCount++;
                                 }
                             }
                         }
@@ -607,11 +478,11 @@
         try {
             const transformed = Babel.transformFromAst(ast, code, {
                 generatorOpts: { jsescOption: { minimal: true } },
-                plugins:[deobfuscatePlugin]
+                plugins: [deobfuscatePlugin]
             });
             document.body.removeChild(iframe);
             if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST置換: ロジック・制御フロー解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
+                log(`AST置換: ロジック・配列解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
             }
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
@@ -635,7 +506,6 @@
         outputEditor.value = formatCode(result.code);
     });
 
-    // 4. Deep Auto Deobfuscate パイプライン (完全解除)
     document.getElementById('btn-auto').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
@@ -658,7 +528,7 @@
 
             let prevAstCode = "";
             let astIter = 0;
-            const MAX_AST_ITER = 5;
+            const MAX_AST_ITER = 4;
             while (currentCode !== prevAstCode && astIter < MAX_AST_ITER) {
                 prevAstCode = currentCode;
                 const result = decodeStringsAST(currentCode);
