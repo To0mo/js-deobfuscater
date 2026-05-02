@@ -13,24 +13,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        body { 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
+        /* ページ全体のスクロールを完全に無効化 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden !important; 
             background-color: #0d1117; 
-            overflow: hidden; 
             color: #c9d1d9; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
         }
-        .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; }
-        .toolbar { padding: 12px 20px; background-color: #0d1117; display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; flex-shrink: 0; }
+        .toolbar { padding: 12px 20px; background-color: #0d1117; display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
         
         .main-container { 
             display: flex; 
             gap: 20px; 
             padding: 0 20px 20px 20px; 
             flex: 1; 
-            overflow: hidden; 
+            min-height: 0; /* フレックス子要素のオーバーフローを許可 */
         }
         
         /* ウィンドウ風パネル */
@@ -54,6 +59,7 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
+            flex-shrink: 0;
         }
         
         /* エディタ部分 (折り返し対応・等幅フォント) */
@@ -70,19 +76,20 @@
             resize: none; 
             white-space: pre-wrap; 
             word-wrap: break-word; 
-            overflow-y: auto; 
+            overflow-y: auto; /* エディタ内部のみスクロール */
         }
         
         /* ログウィンドウ */
         .log-container {
             padding: 0 20px 20px 20px;
-            height: 250px;
+            height: 280px;
             display: flex;
+            flex-shrink: 0;
         }
         .log-content { 
             flex: 1; 
             padding: 12px 15px; 
-            overflow-y: auto; 
+            overflow-y: auto; /* ログ内部のみスクロール */
             font-family: 'Fira Code', monospace; 
             font-size: 12.5px; 
             color: #8b949e; 
@@ -109,8 +116,8 @@
 </nav>
 
 <div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Packerの解除、AST文字列デコード、定数畳み込み、フォーマットを自動実行します">
-        <i class="bi bi-magic me-1"></i> Auto Deobfuscate
+    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Packerの解除、AST文字列デコード、定数畳み込み、フォーマットを自動で深くまで反復実行します">
+        <i class="bi bi-magic me-1"></i> Deep Auto Deobfuscate
     </button>
     <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack (Eval)</button>
     <button class="btn btn-custom btn-sm" id="btn-strings"><i class="bi bi-fonts me-1"></i> Decode Strings (AST)</button>
@@ -181,6 +188,7 @@
 
     // 1. js-beautify によるフォーマット
     function formatCode(code) {
+        if (typeof js_beautify !== 'function') return code;
         try {
             return js_beautify(code, {
                 indent_size: 4,
@@ -256,20 +264,23 @@
                     log(`パッカーを解除しました (${bestPayload.length} bytes)`, "success");
                     resolve(bestPayload);
                 } else {
-                    log("動的展開は検知されませんでした。", "info");
                     resolve(code);
                 }
-            }, 100);
+            }, 150);
         });
     }
 
     // 3. ASTベースの文字列デコーダー＆定数畳み込み
     function decodeStringsAST(code) {
-        log("ASTによる文字列配列・デコーダーの解決を開始...", "info");
         let ast;
         try {
-            // sourceType: 'script' により with 構文等のエラーを回避
-            ast = Babel.transform(code, { ast: true, code: false, sourceType: "script" }).ast;
+            // allowReturnOutsideFunction: true で Example 2 のようなトップレベル return エラーを回避
+            ast = Babel.transform(code, { 
+                ast: true, 
+                code: false, 
+                sourceType: "script",
+                parserOpts: { allowReturnOutsideFunction: true }
+            }).ast;
         } catch(e) {
             log("ASTのパースに失敗: " + e.message, "error");
             return code;
@@ -277,22 +288,20 @@
 
         const totalLength = code.length;
         let setupCode = "";
-        let setupNodesCount = 0;
         
         // 難読化デコーダーロジック（変数・関数・シフター）の抽出
         ast.program.body.forEach(node => {
             const nodeLength = node.end - node.start;
-            // メインロジック（プログラムの過半数を占める巨大ノード）は除外し、暴走を防ぐ
+            // メインロジック（プログラムの過半数を占める巨大ノード）は除外
             if (totalLength > 1000 && nodeLength > totalLength * 0.5) return;
             
             if (node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration') {
                 setupCode += code.substring(node.start, node.end) + "\n";
-                setupNodesCount++;
             } else if (node.type === 'ExpressionStatement') {
                 const text = code.substring(node.start, node.end);
+                // Array Shifter の推測
                 if (text.includes('push') && text.includes('shift')) {
                     setupCode += text + "\n";
-                    setupNodesCount++;
                 }
             }
         });
@@ -303,10 +312,11 @@
         const win = iframe.contentWindow;
 
         try {
+            win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
             win.eval(`window.setTimeout=function(){}; window.setInterval=function(){};`);
             win.eval(setupCode);
         } catch (e) {
-            // 抽出不足によるエラーが出ても、一部の関数は動作可能なため続行
+            // 無視して続行
         }
 
         let replacedCount = 0;
@@ -315,6 +325,8 @@
         try {
             const transformed = Babel.transform(code, {
                 sourceType: "script",
+                parserOpts: { allowReturnOutsideFunction: true },
+                generatorOpts: { jsescOption: { minimal: true } }, // Unicodeエスケープされすぎないようにする
                 plugins: [
                     function({ types: t }) {
                         return {
@@ -340,12 +352,14 @@
                                 },
                                 // 定数畳み込み (Constant Folding)
                                 BinaryExpression(path) {
-                                    const evaluated = path.evaluate();
-                                    if (evaluated.confident) {
-                                        if (typeof evaluated.value === 'string') { path.replaceWith(t.stringLiteral(evaluated.value)); foldedCount++; }
-                                        else if (typeof evaluated.value === 'number') { path.replaceWith(t.numericLiteral(evaluated.value)); foldedCount++; }
-                                        else if (typeof evaluated.value === 'boolean') { path.replaceWith(t.booleanLiteral(evaluated.value)); foldedCount++; }
-                                    }
+                                    try {
+                                        const evaluated = path.evaluate();
+                                        if (evaluated.confident) {
+                                            if (typeof evaluated.value === 'string') { path.replaceWith(t.stringLiteral(evaluated.value)); foldedCount++; }
+                                            else if (typeof evaluated.value === 'number') { path.replaceWith(t.numericLiteral(evaluated.value)); foldedCount++; }
+                                            else if (typeof evaluated.value === 'boolean') { path.replaceWith(t.booleanLiteral(evaluated.value)); foldedCount++; }
+                                        }
+                                    } catch(e){}
                                 }
                             }
                         };
@@ -354,7 +368,9 @@
             });
             
             document.body.removeChild(iframe);
-            log(`AST処理完了: デコーダー呼び出し解除 ${replacedCount} 箇所, 定数畳み込み ${foldedCount} 箇所`, "success");
+            if(replacedCount > 0 || foldedCount > 0) {
+                log(`AST置換: デコーダー解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
+            }
             return transformed.code;
         } catch (e) {
             document.body.removeChild(iframe);
@@ -363,7 +379,7 @@
         }
     }
 
-    // 各種ボタンのイベントリスナー
+    // 単発ボタン用
     document.getElementById('btn-dynamic').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
@@ -378,25 +394,40 @@
         outputEditor.value = formatCode(decoded);
     });
 
-    // Auto Deobfuscate パイプライン
+    // 4. Deep Auto Deobfuscate パイプライン
     document.getElementById('btn-auto').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
         
-        log("==== Auto Deobfuscation 開始 ====", "info");
-        outputEditor.value = "解析中... しばらくお待ちください。";
+        log("==== Deep Auto Deobfuscation 開始 ====", "success");
+        outputEditor.value = "解析・復元中... (コードの変化が止まるまで深く反復します)";
         
-        // 1. 動的アンパッカー (Example 2, 4 等)
-        let currentCode = await dynamicUnpack(code);
-        
-        // 2. ASTデコーダー (Example 1, 3 等、複数回実行して入れ子を解決)
-        let prevCode = "";
-        let iter = 0;
-        while (currentCode !== prevCode && iter < 3) {
-            prevCode = currentCode;
-            log(`AST解析 パス ${iter + 1} 実行中...`, "info");
-            currentCode = decodeStringsAST(currentCode);
-            iter++;
+        let currentCode = code;
+        let prevOverallCode = "";
+        let globalIter = 0;
+        const MAX_GLOBAL_ITER = 5; // アンパックとAST解析の全体ループ上限
+
+        // コードの変化が完全になくなるまで深く潜る
+        while (currentCode !== prevOverallCode && globalIter < MAX_GLOBAL_ITER) {
+            prevOverallCode = currentCode;
+            globalIter++;
+            log(`[Pass ${globalIter}] アンパックと解析を実行中...`, "warning");
+            
+            // 1. 動的アンパッカー
+            let unpacked = await dynamicUnpack(currentCode);
+            if (unpacked !== currentCode) {
+                currentCode = unpacked;
+            }
+
+            // 2. ASTデコーダー (内部でさらに変化がなくなるまで回す)
+            let prevAstCode = "";
+            let astIter = 0;
+            const MAX_AST_ITER = 5;
+            while (currentCode !== prevAstCode && astIter < MAX_AST_ITER) {
+                prevAstCode = currentCode;
+                currentCode = decodeStringsAST(currentCode);
+                astIter++;
+            }
         }
         
         // 3. コード整形
@@ -404,7 +435,7 @@
         currentCode = formatCode(currentCode);
         
         outputEditor.value = currentCode;
-        log("==== 完了しました！ ====", "success");
+        log(`==== 解析完了 (総実行パス数: ${globalIter}) ====`, "success");
     });
 </script>
 </body>
