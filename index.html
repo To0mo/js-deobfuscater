@@ -3,58 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal JS Deobfuscator</title>
+    <title>Universal JS Deobfuscator Studio</title>
     
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts (Fira Code) -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        /* モバイルキーボード対策 */
+        /* モバイルキーボード対策：fixedを利用し全体のスクロール・見切れを無効化 */
         html, body {
-            margin: 0; padding: 0;
-            width: 100vw; height: 100dvh;
-            position: fixed; top: 0; left: 0;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100dvh;
+            position: fixed;
+            top: 0;
+            left: 0;
             overflow: hidden !important; 
-            background-color: #0d1117; color: #c9d1d9; 
+            background-color: #0d1117; 
+            color: #c9d1d9; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
         }
         
         .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; flex-shrink: 0; }
         .toolbar { padding: 10px 15px; background-color: #0d1117; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
-        .main-container { display: flex; flex-direction: column; gap: 15px; padding: 0 15px 15px 15px; flex: 1; min-height: 0; }
+        
+        .main-container { 
+            display: flex; 
+            flex-direction: column; /* モバイルでは縦並び */
+            gap: 15px; 
+            padding: 0 15px 15px 15px; 
+            flex: 1; 
+            min-height: 0;
+        }
         
         @media (min-width: 768px) {
-            .main-container { flex-direction: row; padding: 0 20px 20px 20px; gap: 20px; }
+            .main-container {
+                flex-direction: row; /* PCでは横並び */
+                padding: 0 20px 20px 20px;
+                gap: 20px;
+            }
             .toolbar { padding: 12px 20px; gap: 10px; }
         }
         
+        /* ウィンドウ風パネル */
         .window-panel { 
-            flex: 1; display: flex; flex-direction: column; 
-            background-color: #161b22; border: 1px solid #30363d; 
-            border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            overflow: hidden; min-height: 0;
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background-color: #161b22; 
+            border: 1px solid #30363d; 
+            border-radius: 8px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            overflow: hidden;
+            min-height: 0;
         }
         .window-header { 
-            padding: 8px 15px; background-color: #21262d; 
-            font-size: 0.9em; font-weight: 600; border-bottom: 1px solid #30363d; 
-            color: #e6edf3; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+            padding: 8px 15px; 
+            background-color: #21262d; 
+            font-size: 0.9em; 
+            font-weight: 600; 
+            border-bottom: 1px solid #30363d; 
+            color: #e6edf3; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-shrink: 0;
         }
         
+        /* エディタ部分 */
         .editor { 
-            flex: 1; background-color: #0d1117; color: #e6edf3; 
-            border: none; padding: 15px; font-family: 'Fira Code', monospace; 
-            font-size: 13px; line-height: 1.5; outline: none; resize: none; 
-            white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            flex: 1; 
+            background-color: #0d1117; 
+            color: #e6edf3; 
+            border: none; 
+            padding: 15px; 
+            font-family: 'Fira Code', monospace; 
+            font-size: 13px; 
+            line-height: 1.5;
+            outline: none; 
+            resize: none; 
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
-        .log-container { padding: 0 15px 15px 15px; height: 25dvh; display: flex; flex-shrink: 0; }
-        @media (min-width: 768px) { .log-container { padding: 0 20px 20px 20px; height: 250px; } }
-        
+        /* ログウィンドウ */
+        .log-container {
+            padding: 0 15px 15px 15px;
+            height: 25dvh;
+            display: flex;
+            flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+            .log-container { padding: 0 20px 20px 20px; height: 280px; }
+        }
         .log-content { 
-            flex: 1; padding: 12px 15px; overflow-y: auto; -webkit-overflow-scrolling: touch;
-            font-family: 'Fira Code', monospace; font-size: 12px; color: #8b949e; background-color: #0d1117;
+            flex: 1; 
+            padding: 12px 15px; 
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            font-family: 'Fira Code', monospace; 
+            font-size: 12px; 
+            color: #8b949e; 
+            background-color: #0d1117;
         }
         .log-entry { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #21262d; word-break: break-all; }
         .log-entry.info { color: #58a6ff; }
@@ -172,30 +230,39 @@
         let unpacked = false;
 
         try {
-            const ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-            Babel.traverse(ast, {
-                CallExpression(path) {
-                    if (path.node._visited) return;
-                    
-                    // パターン: Function("...", "コード")(...)
-                    if (Babel.types.isCallExpression(path.node.callee) && Babel.types.isIdentifier(path.node.callee.callee, {name: 'Function'})) {
-                        const args = path.node.callee.arguments;
-                        if (args.length > 0 && Babel.types.isStringLiteral(args[args.length - 1])) {
-                            payload = args[args.length - 1].value;
-                            unpacked = true;
-                            path.stop();
-                        }
+            Babel.transform(code, {
+                ast: false, code: false,
+                parserOpts: { allowReturnOutsideFunction: true },
+                plugins:[
+                    function({ types: t }) {
+                        return {
+                            visitor: {
+                                CallExpression(path) {
+                                    if (path.node._visited) return;
+                                    
+                                    // パターン: Function("...", "コード")(...)
+                                    if (t.isCallExpression(path.node.callee) && t.isIdentifier(path.node.callee.callee, {name: 'Function'})) {
+                                        const args = path.node.callee.arguments;
+                                        if (args.length > 0 && t.isStringLiteral(args[args.length - 1])) {
+                                            payload = args[args.length - 1].value;
+                                            unpacked = true;
+                                            path.stop();
+                                        }
+                                    }
+                                    // パターン: eval("コード")
+                                    else if (t.isIdentifier(path.node.callee, {name: 'eval'})) {
+                                        const args = path.node.arguments;
+                                        if (args.length === 1 && t.isStringLiteral(args[0])) {
+                                            payload = args[0].value;
+                                            unpacked = true;
+                                            path.stop();
+                                        }
+                                    }
+                                }
+                            }
+                        };
                     }
-                    // パターン: eval("コード")
-                    else if (Babel.types.isIdentifier(path.node.callee, {name: 'eval'})) {
-                        const args = path.node.arguments;
-                        if (args.length === 1 && Babel.types.isStringLiteral(args[0])) {
-                            payload = args[0].value;
-                            unpacked = true;
-                            path.stop();
-                        }
-                    }
-                }
+                ]
             });
         } catch (e) {
             log("静的アンパック中にASTパースエラー: " + e.message, "warning");
@@ -216,41 +283,47 @@
     // 2. Safe AST Decoder & Deflattener
     // ==========================================
     function decodeAST(code) {
-        let ast;
+        let setupCode = "";
+        
+        // --- 1. セットアップコードの安全な抽出 ---
         try {
-            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
+            Babel.transform(code, {
+                ast: false, code: false,
+                parserOpts: { allowReturnOutsideFunction: true },
+                plugins:[
+                    function({ types: t }) {
+                        return {
+                            visitor: {
+                                VariableDeclaration(path) {
+                                    if (t.isProgram(path.parent) || t.isBlockStatement(path.parent)) {
+                                        setupCode += Babel.transformFromAst(t.program([t.cloneNode(path.node)]), "", {}).code + "\n";
+                                    }
+                                },
+                                FunctionDeclaration(path) {
+                                    if (t.isProgram(path.parent) || t.isBlockStatement(path.parent)) {
+                                        setupCode += Babel.transformFromAst(t.program([t.cloneNode(path.node)]), "", {}).code + "\n";
+                                    }
+                                },
+                                ExpressionStatement(path) {
+                                    if (t.isProgram(path.parent) || t.isBlockStatement(path.parent)) {
+                                        const snippet = Babel.transformFromAst(t.program([t.cloneNode(path.node)]), "", {}).code;
+                                        // 配列シフト等の初期化処理らしきものを許可
+                                        if (snippet.includes('push') || snippet.includes('shift') || snippet.includes('indexOf')) {
+                                            setupCode += snippet + "\n";
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
+                ]
+            });
         } catch(e) {
             log("ASTのパースに失敗: " + e.message, "error");
             return { code, changed: false };
         }
 
-        // --- 安全な Sandbox 環境の構築 ---
-        // 悪意のある/フリーズするループを実行させないため、
-        // 「変数宣言」「関数宣言」「配列シフトっぽい処理」のみを抽出して実行環境を作る。
-        let setupCode = "";
-        Babel.traverse(ast, {
-            VariableDeclaration(path) {
-                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
-                    setupCode += Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code + "\n";
-                }
-            },
-            FunctionDeclaration(path) {
-                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
-                    setupCode += Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code + "\n";
-                }
-            },
-            ExpressionStatement(path) {
-                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
-                    const snippet = Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code;
-                    // 配列シフト等の初期化処理らしきものを許可
-                    if (snippet.includes('push') || snippet.includes('shift') || snippet.includes('indexOf')) {
-                        setupCode += snippet + "\n";
-                    }
-                }
-            }
-        });
-
-        // サンドボックスで評価 (WebWorkerなしでも安全な部分だけを評価)
+        // サンドボックスで評価 (安全な部分だけを評価して環境を作る)
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
@@ -266,6 +339,7 @@
         let replacedCount = 0;
         let foldedCount = 0;
 
+        // --- 2. デコーダ関数の実行と制御フロー平坦化の解除 ---
         const deobfuscatePlugin = function({ types: t }) {
             return {
                 visitor: {
@@ -282,7 +356,7 @@
                             if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
                                 if (typeof win[funcName] === 'function') {
                                     try {
-                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(path.node)]), "", {ast:false, code:true}).code;
+                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(t.cloneNode(path.node))]), "", {ast:false, code:true}).code;
                                         const res = win.eval(callCode);
                                         
                                         let newNode = null;
@@ -341,7 +415,7 @@
                                     seq = evalRes.value;
                                 } else {
                                     try { 
-                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {}).code;
+                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(t.cloneNode(init))]), "", {}).code;
                                         seq = win.eval(codePart); 
                                     } catch(e) {}
                                 }
@@ -358,7 +432,11 @@
                                     let valid = true;
                                     seq.forEach(key => {
                                         if (caseMap[key]) {
-                                            caseMap[key].forEach(n => { n._visited = true; unflattened.push(n); });
+                                            caseMap[key].forEach(n => { 
+                                                const cloned = t.cloneNode(n, true);
+                                                cloned._visited = true; 
+                                                unflattened.push(cloned); 
+                                            });
                                         } else valid = false;
                                     });
                                     
@@ -392,7 +470,7 @@
                                                         continue;
                                                     }
                                                 }
-                                                // ブロックのネスト内の代入をチェック
+                                                // ブロック内の代入をチェック
                                                 if (t.isBlockStatement(stmt)) {
                                                     let innerNextState = null;
                                                     const cleanInner =[];
@@ -421,7 +499,11 @@
                                     
                                     while (curr !== null && caseMap[curr] && !visited.has(curr)) {
                                         visited.add(curr);
-                                        unflattened.push(...caseMap[curr].stmts);
+                                        caseMap[curr].stmts.forEach(s => {
+                                            const cloned = t.cloneNode(s, true);
+                                            cloned._visited = true;
+                                            unflattened.push(cloned);
+                                        });
                                         curr = caseMap[curr].nextState;
                                     }
                                     
@@ -439,18 +521,20 @@
         };
 
         try {
-            const transformed = Babel.transformFromAst(ast, code, {
+            const transformed = Babel.transform(code, {
+                ast: false, code: true,
+                parserOpts: { allowReturnOutsideFunction: true },
                 generatorOpts: { jsescOption: { minimal: true } },
-                plugins:[deobfuscatePlugin]
+                plugins: [deobfuscatePlugin]
             });
             document.body.removeChild(iframe);
             if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST置換: 難読化解除 ${replacedCount}箇所, 定数計算 ${foldedCount}箇所`, "info");
+                log(`AST置換: ロジック解除 ${replacedCount}箇所, 定数計算 ${foldedCount}箇所`, "info");
             }
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
             document.body.removeChild(iframe);
-            log("AST変換・置換エラー: " + e.message, "error");
+            log("AST置換エラー: " + e.message, "error");
             return { code, changed: false };
         }
     }
