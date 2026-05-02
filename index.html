@@ -17,10 +17,10 @@
             height: 100vh; 
             display: flex; 
             flex-direction: column; 
-            background-color: #0d1117; /* GitHub Dark風の背景 */
+            background-color: #0d1117; 
             overflow: hidden; 
             color: #c9d1d9; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; }
         .toolbar { padding: 12px 20px; background-color: #0d1117; display: flex; gap: 10px; flex-wrap: wrap; }
@@ -33,7 +33,7 @@
             overflow: hidden; 
         }
         
-        /* ウィンドウ風のパネルデザイン */
+        /* ウィンドウ風パネル */
         .window-panel { 
             flex: 1; 
             display: flex; 
@@ -45,7 +45,7 @@
             overflow: hidden;
         }
         .window-header { 
-            padding: 10px 15px; 
+            padding: 8px 15px; 
             background-color: #21262d; 
             font-size: 0.9em; 
             font-weight: 600; 
@@ -68,8 +68,8 @@
             line-height: 1.5;
             outline: none; 
             resize: none; 
-            white-space: pre-wrap; /* 折り返し */
-            word-wrap: break-word; /* 折り返し */
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
             overflow-y: auto; 
         }
         
@@ -119,7 +119,6 @@
 </div>
 
 <div class="main-container">
-    <!-- Input Window -->
     <div class="window-panel">
         <div class="window-header">
             <span><i class="bi bi-file-earmark-code me-2"></i>Input (Obfuscated)</span>
@@ -127,7 +126,6 @@
         <textarea class="editor" id="input-editor" spellcheck="false" placeholder="ここに難読化されたJavaScriptコードを貼り付けてください..."></textarea>
     </div>
     
-    <!-- Output Window -->
     <div class="window-panel">
         <div class="window-header">
             <span><i class="bi bi-file-earmark-check me-2"></i>Output (Deobfuscated)</span>
@@ -137,7 +135,6 @@
     </div>
 </div>
 
-<!-- Log Window -->
 <div class="log-container">
     <div class="window-panel">
         <div class="window-header">
@@ -150,7 +147,7 @@
 
 <!-- Babel Standalone (AST Parsing) -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- js-beautify (確実なCDNリンク) -->
+<!-- js-beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
 
 <script>
@@ -158,7 +155,6 @@
     const outputEditor = document.getElementById('output-editor');
     const logContent = document.getElementById('log-content');
 
-    // ロギング関数
     function log(message, type = 'info') {
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
@@ -183,12 +179,8 @@
         log('出力コードをクリップボードにコピーしました。', 'success');
     });
 
-    // 1. JS-Beautify による同期フォーマット
+    // 1. js-beautify によるフォーマット
     function formatCode(code) {
-        if (typeof js_beautify !== 'function') {
-            log("js_beautify がロードされていません。", "error");
-            return code;
-        }
         try {
             return js_beautify(code, {
                 indent_size: 4,
@@ -199,7 +191,7 @@
                 brace_style: "collapse"
             });
         } catch (e) {
-            log("フォーマット中にエラーが発生しました: " + e.message, "warning");
+            log("フォーマットエラー: " + e.message, "warning");
             return code;
         }
     }
@@ -208,17 +200,15 @@
         const code = outputEditor.value || inputEditor.value;
         if (!code) return;
         outputEditor.value = formatCode(code);
-        log("js-beautify によるコードフォーマットが完了しました。", "success");
+        log("コードの整形が完了しました。", "success");
     });
 
     // 2. 動的アンパッカー (Eval / Function フック)
-    // Example 4 のような Packer に対応
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
             log("動的アンパッカー (Eval/Functionフック) を開始...", "info");
             
             const iframe = document.createElement('iframe');
-            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
             
@@ -230,10 +220,7 @@
 
                 const origEval = win.eval;
                 win.eval = function(payload) {
-                    if (typeof payload === 'string' && payload.length > 30) {
-                        payloads.push(payload);
-                        log(`eval() の呼び出しを傍受しました (サイズ: ${payload.length} bytes)`, "success");
-                    }
+                    if (typeof payload === 'string' && payload.length > 30) payloads.push(payload);
                     return origEval.apply(this, arguments);
                 };
 
@@ -241,10 +228,7 @@
                 const hookedFunction = function(...args) {
                     if (args.length > 0) {
                         const payload = args[args.length - 1];
-                        if (typeof payload === 'string' && payload.length > 30) {
-                            payloads.push(payload);
-                            log(`Function() の呼び出しを傍受しました (サイズ: ${payload.length} bytes)`, "success");
-                        }
+                        if (typeof payload === 'string' && payload.length > 30) payloads.push(payload);
                     }
                     return origFunction.apply(this, args);
                 };
@@ -253,17 +237,15 @@
                 win.Function.prototype.constructor = hookedFunction;
 
                 const script = win.document.createElement('script');
-                // 無限ループやリダイレクトを防止する防御措置
                 script.textContent = `
                     window.setTimeout = function(){};
                     window.setInterval = function(){};
-                    window.location = {};
                     try { ${code} } catch(e) {}
                 `;
                 win.document.body.appendChild(script);
 
             } catch (err) {
-                log(`Sandbox実行中にエラー: ${err.message}`, "warning");
+                log(`Sandbox実行エラー: ${err.message}`, "warning");
             }
 
             setTimeout(() => {
@@ -271,69 +253,60 @@
                 if (payloads.length > 0) {
                     payloads.sort((a, b) => b.length - a.length);
                     const bestPayload = payloads[0];
-                    log(`展開されたペイロードを抽出しました (${bestPayload.length} bytes)`, "success");
+                    log(`パッカーを解除しました (${bestPayload.length} bytes)`, "success");
                     resolve(bestPayload);
                 } else {
-                    log("動的展開の形跡は見つかりませんでした。", "info");
+                    log("動的展開は検知されませんでした。", "info");
                     resolve(code);
                 }
-            }, 300);
+            }, 100);
         });
     }
 
-    document.getElementById('btn-dynamic').addEventListener('click', async () => {
-        const code = inputEditor.value;
-        if (!code) return;
-        const unpacked = await dynamicUnpack(code);
-        outputEditor.value = formatCode(unpacked);
-    });
-
     // 3. ASTベースの文字列デコーダー＆定数畳み込み
-    // Example 1, 2, 3 のような Obfuscator.io / JsConfuser に対応
     function decodeStringsAST(code) {
-        log("ASTによるコンテキスト構築と文字列解決を開始...", "info");
+        log("ASTによる文字列配列・デコーダーの解決を開始...", "info");
         let ast;
         try {
-            ast = Babel.transform(code, { ast: true, code: false }).ast;
+            // sourceType: 'script' により with 構文等のエラーを回避
+            ast = Babel.transform(code, { ast: true, code: false, sourceType: "script" }).ast;
         } catch(e) {
-            log("ASTのパースに失敗しました (構文エラーの可能性): " + e.message, "error");
+            log("ASTのパースに失敗: " + e.message, "error");
             return code;
         }
 
-        // デコーダー関数群を Sandbox にロードするためのコードを抽出
+        const totalLength = code.length;
         let setupCode = "";
-        let extractedNodes = 0;
+        let setupNodesCount = 0;
         
+        // 難読化デコーダーロジック（変数・関数・シフター）の抽出
         ast.program.body.forEach(node => {
-            // 変数宣言、関数宣言、即時関数(IIFE)を抽出
+            const nodeLength = node.end - node.start;
+            // メインロジック（プログラムの過半数を占める巨大ノード）は除外し、暴走を防ぐ
+            if (totalLength > 1000 && nodeLength > totalLength * 0.5) return;
+            
             if (node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration') {
                 setupCode += code.substring(node.start, node.end) + "\n";
-                extractedNodes++;
-            } else if (node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression') {
-                setupCode += code.substring(node.start, node.end) + "\n";
-                extractedNodes++;
+                setupNodesCount++;
+            } else if (node.type === 'ExpressionStatement') {
+                const text = code.substring(node.start, node.end);
+                if (text.includes('push') && text.includes('shift')) {
+                    setupCode += text + "\n";
+                    setupNodesCount++;
+                }
             }
         });
 
-        log(`${extractedNodes} 個のトップレベルコンテキストを Sandbox にロードします。`, "info");
-
         const iframe = document.createElement('iframe');
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
         const win = iframe.contentWindow;
 
-        // 防衛コード(Anti-Debug)の暴走を防ぐ
-        win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
         try {
-            win.eval(`
-                window.setTimeout = function(){};
-                window.setInterval = function(){};
-            `);
+            win.eval(`window.setTimeout=function(){}; window.setInterval=function(){};`);
             win.eval(setupCode);
-            log("Sandbox内でのデコーダー初期化に成功しました。", "success");
         } catch (e) {
-            log(`Sandbox実行中にエラーが発生しましたが、一部の関数は利用可能な場合があります (${e.message})`, "warning");
+            // 抽出不足によるエラーが出ても、一部の関数は動作可能なため続行
         }
 
         let replacedCount = 0;
@@ -341,6 +314,7 @@
 
         try {
             const transformed = Babel.transform(code, {
+                sourceType: "script",
                 plugins: [
                     function({ types: t }) {
                         return {
@@ -349,45 +323,28 @@
                                 CallExpression(path) {
                                     if (path.node.callee.type === 'Identifier') {
                                         const funcName = path.node.callee.name;
-                                        // 危険なネイティブ関数の実行を防止
-                                        if (['eval', 'require', 'setTimeout', 'setInterval', 'console', 'Function', 'parseInt'].includes(funcName)) return;
+                                        if (['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt'].includes(funcName)) return;
                                         
-                                        // 引数が全てリテラル値かチェック
                                         const isLiteral = (arg) => arg.type.includes('Literal') || (arg.type === 'UnaryExpression' && arg.argument.type.includes('Literal'));
                                         
                                         if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
                                             const callCode = code.substring(path.node.start, path.node.end);
                                             try {
                                                 const res = win.eval(callCode);
-                                                if (typeof res === 'string') {
-                                                    path.replaceWith(t.stringLiteral(res));
-                                                    replacedCount++;
-                                                } else if (typeof res === 'number') {
-                                                    path.replaceWith(t.numericLiteral(res));
-                                                    replacedCount++;
-                                                } else if (typeof res === 'boolean') {
-                                                    path.replaceWith(t.booleanLiteral(res));
-                                                    replacedCount++;
-                                                }
-                                            } catch (e) {
-                                                // 実行できない関数は無視
-                                            }
+                                                if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; }
+                                                else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; }
+                                                else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; }
+                                            } catch (e) {}
                                         }
                                     }
                                 },
-                                // 定数畳み込み (Constant Folding) ex: "a" + "b" -> "ab", 1 + 2 -> 3
+                                // 定数畳み込み (Constant Folding)
                                 BinaryExpression(path) {
                                     const evaluated = path.evaluate();
                                     if (evaluated.confident) {
-                                        let nodeToReplace;
-                                        if (typeof evaluated.value === 'string') nodeToReplace = t.stringLiteral(evaluated.value);
-                                        else if (typeof evaluated.value === 'number') nodeToReplace = t.numericLiteral(evaluated.value);
-                                        else if (typeof evaluated.value === 'boolean') nodeToReplace = t.booleanLiteral(evaluated.value);
-                                        
-                                        if (nodeToReplace) {
-                                            path.replaceWith(nodeToReplace);
-                                            foldedCount++;
-                                        }
+                                        if (typeof evaluated.value === 'string') { path.replaceWith(t.stringLiteral(evaluated.value)); foldedCount++; }
+                                        else if (typeof evaluated.value === 'number') { path.replaceWith(t.numericLiteral(evaluated.value)); foldedCount++; }
+                                        else if (typeof evaluated.value === 'boolean') { path.replaceWith(t.booleanLiteral(evaluated.value)); foldedCount++; }
                                     }
                                 }
                             }
@@ -397,15 +354,23 @@
             });
             
             document.body.removeChild(iframe);
-            log(`AST置換完了: デコーダー呼び出し ${replacedCount} 箇所解除、定数畳み込み ${foldedCount} 箇所解決`, "success");
+            log(`AST処理完了: デコーダー呼び出し解除 ${replacedCount} 箇所, 定数畳み込み ${foldedCount} 箇所`, "success");
             return transformed.code;
         } catch (e) {
             document.body.removeChild(iframe);
-            log("AST変換に失敗しました: " + e.message, "error");
+            log("AST変換エラー: " + e.message, "error");
             return code;
         }
     }
 
+    // 各種ボタンのイベントリスナー
+    document.getElementById('btn-dynamic').addEventListener('click', async () => {
+        const code = inputEditor.value;
+        if (!code) return;
+        const unpacked = await dynamicUnpack(code);
+        outputEditor.value = formatCode(unpacked);
+    });
+    
     document.getElementById('btn-strings').addEventListener('click', () => {
         const code = inputEditor.value;
         if (!code) return;
@@ -413,35 +378,33 @@
         outputEditor.value = formatCode(decoded);
     });
 
-    // 4. Auto Deobfuscate (一括パイプライン)
+    // Auto Deobfuscate パイプライン
     document.getElementById('btn-auto').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
         
-        log("==== Auto Deobfuscation パイプライン開始 ====", "info");
-        outputEditor.value = "解析・復元中... しばらくお待ちください。";
+        log("==== Auto Deobfuscation 開始 ====", "info");
+        outputEditor.value = "解析中... しばらくお待ちください。";
         
-        // Step 1: 動的アンパッカー (Packer解除)
+        // 1. 動的アンパッカー (Example 2, 4 等)
         let currentCode = await dynamicUnpack(code);
         
-        // Step 2: AST デコーダー & 定数畳み込み (多重難読化に対応するため複数回実行)
-        let previousCode = "";
-        let iterations = 0;
-        const maxIterations = 3; // 最大3レイヤーまで深掘り
-        
-        while (currentCode !== previousCode && iterations < maxIterations) {
-            previousCode = currentCode;
-            log(`AST解析 パス ${iterations + 1} を実行中...`, "info");
+        // 2. ASTデコーダー (Example 1, 3 等、複数回実行して入れ子を解決)
+        let prevCode = "";
+        let iter = 0;
+        while (currentCode !== prevCode && iter < 3) {
+            prevCode = currentCode;
+            log(`AST解析 パス ${iter + 1} 実行中...`, "info");
             currentCode = decodeStringsAST(currentCode);
-            iterations++;
+            iter++;
         }
         
-        // Step 3: JS-Beautify フォーマット
-        log("コードを美しく整形しています...", "info");
+        // 3. コード整形
+        log("コードをフォーマットしています...", "info");
         currentCode = formatCode(currentCode);
         
         outputEditor.value = currentCode;
-        log("==== パイプラインが完了しました！ ====", "success");
+        log("==== 完了しました！ ====", "success");
     });
 </script>
 </body>
