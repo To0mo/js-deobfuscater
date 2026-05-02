@@ -3,116 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal JS Deobfuscator Studio</title>
+    <title>Universal JS Deobfuscator</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts (Fira Code) -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        /* モバイルキーボード対策：fixedを利用し全体のスクロール・見切れを無効化 */
+        /* モバイルキーボード対策 */
         html, body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100dvh;
-            position: fixed;
-            top: 0;
-            left: 0;
+            margin: 0; padding: 0;
+            width: 100vw; height: 100dvh;
+            position: fixed; top: 0; left: 0;
             overflow: hidden !important; 
-            background-color: #0d1117; 
-            color: #c9d1d9; 
+            background-color: #0d1117; color: #c9d1d9; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         
         .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; flex-shrink: 0; }
         .toolbar { padding: 10px 15px; background-color: #0d1117; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
-        
-        .main-container { 
-            display: flex; 
-            flex-direction: column; /* モバイルでは縦並び */
-            gap: 15px; 
-            padding: 0 15px 15px 15px; 
-            flex: 1; 
-            min-height: 0;
-        }
+        .main-container { display: flex; flex-direction: column; gap: 15px; padding: 0 15px 15px 15px; flex: 1; min-height: 0; }
         
         @media (min-width: 768px) {
-            .main-container {
-                flex-direction: row; /* PCでは横並び */
-                padding: 0 20px 20px 20px;
-                gap: 20px;
-            }
+            .main-container { flex-direction: row; padding: 0 20px 20px 20px; gap: 20px; }
             .toolbar { padding: 12px 20px; gap: 10px; }
         }
         
-        /* ウィンドウ風パネル */
         .window-panel { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #161b22; 
-            border: 1px solid #30363d; 
-            border-radius: 8px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            overflow: hidden;
-            min-height: 0;
+            flex: 1; display: flex; flex-direction: column; 
+            background-color: #161b22; border: 1px solid #30363d; 
+            border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            overflow: hidden; min-height: 0;
         }
         .window-header { 
-            padding: 8px 15px; 
-            background-color: #21262d; 
-            font-size: 0.9em; 
-            font-weight: 600; 
-            border-bottom: 1px solid #30363d; 
-            color: #e6edf3; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-shrink: 0;
+            padding: 8px 15px; background-color: #21262d; 
+            font-size: 0.9em; font-weight: 600; border-bottom: 1px solid #30363d; 
+            color: #e6edf3; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
         }
         
-        /* エディタ部分 */
         .editor { 
-            flex: 1; 
-            background-color: #0d1117; 
-            color: #e6edf3; 
-            border: none; 
-            padding: 15px; 
-            font-family: 'Fira Code', monospace; 
-            font-size: 13px; 
-            line-height: 1.5;
-            outline: none; 
-            resize: none; 
-            white-space: pre-wrap; 
-            word-wrap: break-word; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            flex: 1; background-color: #0d1117; color: #e6edf3; 
+            border: none; padding: 15px; font-family: 'Fira Code', monospace; 
+            font-size: 13px; line-height: 1.5; outline: none; resize: none; 
+            white-space: pre-wrap; word-wrap: break-word; overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         
-        /* ログウィンドウ */
-        .log-container {
-            padding: 0 15px 15px 15px;
-            height: 25dvh;
-            display: flex;
-            flex-shrink: 0;
-        }
-        @media (min-width: 768px) {
-            .log-container { padding: 0 20px 20px 20px; height: 280px; }
-        }
+        .log-container { padding: 0 15px 15px 15px; height: 25dvh; display: flex; flex-shrink: 0; }
+        @media (min-width: 768px) { .log-container { padding: 0 20px 20px 20px; height: 250px; } }
+        
         .log-content { 
-            flex: 1; 
-            padding: 12px 15px; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            font-family: 'Fira Code', monospace; 
-            font-size: 12px; 
-            color: #8b949e; 
-            background-color: #0d1117;
+            flex: 1; padding: 12px 15px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            font-family: 'Fira Code', monospace; font-size: 12px; color: #8b949e; background-color: #0d1117;
         }
         .log-entry { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #21262d; word-break: break-all; }
         .log-entry.info { color: #58a6ff; }
@@ -135,11 +77,11 @@
 </nav>
 
 <div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="強力なAST解析とSandbox解析を用いてコードを復元します">
+    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Packer抽出とAST解除を安全に連続実行します">
         <i class="bi bi-magic me-1"></i> Deep Auto
     </button>
-    <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack</button>
-    <button class="btn btn-custom btn-sm" id="btn-strings"><i class="bi bi-fonts me-1"></i> Decode AST</button>
+    <button class="btn btn-custom btn-sm" id="btn-unpack"><i class="bi bi-box-arrow-up-right me-1"></i> Static Unpack</button>
+    <button class="btn btn-custom btn-sm" id="btn-strings"><i class="bi bi-fonts me-1"></i> AST Decode</button>
     <button class="btn btn-custom btn-sm" id="btn-format"><i class="bi bi-code-slash me-1"></i> Beautify</button>
     <button class="btn btn-outline-danger btn-sm ms-auto" id="btn-clear"><i class="bi bi-trash"></i></button>
 </div>
@@ -171,7 +113,7 @@
     </div>
 </div>
 
-<!-- Babel Standalone -->
+<!-- Babel Standalone (AST Parsing) -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <!-- js-beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
@@ -189,7 +131,6 @@
         if (type === 'success') icon = 'bi-check-circle';
         if (type === 'error') icon = 'bi-x-circle';
         if (type === 'warning') icon = 'bi-exclamation-triangle';
-        
         entry.innerHTML = `<span style="color: #484f58; font-size: 0.9em;">[${timestamp}]</span> <i class="bi ${icon} me-1"></i> ${message}`;
         logContent.appendChild(entry);
         logContent.scrollTop = logContent.scrollHeight;
@@ -212,7 +153,6 @@
                 indent_size: 4, space_in_empty_paren: true, preserve_newlines: true, max_preserve_newlines: 2, jslint_happy: true, brace_style: "collapse"
             });
         } catch (e) {
-            log("フォーマットエラー: " + e.message, "warning");
             return code;
         }
     }
@@ -224,308 +164,172 @@
         log("コードの整形が完了しました。", "success");
     });
 
-    // 動的アンパッカー (JSDefender & Packer キラー)
-    function dynamicUnpack(code) {
-        return new Promise((resolve) => {
-            log("動的パッカー解析を開始...", "info");
-            
-            let payloads =[];
-            function checkAndPush(payload) {
-                if (typeof payload === 'string' && payload.length > 50) {
-                    try { 
-                        Babel.transform(payload, { ast: false, code: false }); // 構文チェック
-                        payloads.push(payload); 
-                    } catch(e) {}
-                }
-            }
+    // ==========================================
+    // 1. Static Unpacker (JS Confuser等 Function(...)パッカー対応)
+    // ==========================================
+    function staticUnpack(code) {
+        let payload = code;
+        let unpacked = false;
 
-            let instrumentedCode = code;
-            try {
-                // eval呼び出しを強制的にフックするAST置換
-                const evalHookPlugin = function({ types: t }) {
-                    return {
-                        visitor: {
-                            CallExpression(path) {
-                                if (t.isIdentifier(path.node.callee, { name: 'eval' })) {
-                                    path.node.callee.name = '__hook_eval__';
-                                }
-                            }
+        try {
+            const ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
+            Babel.traverse(ast, {
+                CallExpression(path) {
+                    if (path.node._visited) return;
+                    
+                    // パターン: Function("...", "コード")(...)
+                    if (Babel.types.isCallExpression(path.node.callee) && Babel.types.isIdentifier(path.node.callee.callee, {name: 'Function'})) {
+                        const args = path.node.callee.arguments;
+                        if (args.length > 0 && Babel.types.isStringLiteral(args[args.length - 1])) {
+                            payload = args[args.length - 1].value;
+                            unpacked = true;
+                            path.stop();
                         }
-                    };
-                };
-                instrumentedCode = Babel.transform(code, {
-                    ast: false, code: true,
-                    plugins: [evalHookPlugin],
-                    parserOpts: { allowReturnOutsideFunction: true }
-                }).code;
-            } catch(e) {}
-
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            const win = iframe.contentWindow;
-
-            try {
-                win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
-                win.onerror = function() { return true; };
-                win.setTimeout = function(){ return 0; };
-                win.setInterval = function(){ return 0; };
-
-                win.__hook_eval__ = function(p) { checkAndPush(p); try{return win.eval(p);}catch(e){} };
-                win.eval = win.__hook_eval__;
-                
-                const origFunction = win.Function;
-                win.Function = function(...args) {
-                    if (args.length > 0) checkAndPush(args[args.length - 1]);
-                    try { return origFunction.apply(this, args); } catch(e){}
-                };
-                win.Function.prototype = origFunction.prototype;
-
-                const origWrite = win.document.write;
-                win.document.write = function(p) { checkAndPush(p); return origWrite.apply(this, arguments); };
-
-                const script = win.document.createElement('script');
-                script.textContent = instrumentedCode;
-                win.document.body.appendChild(script);
-            } catch (err) {
-                log(`Sandboxエラー: ${err.message}`, "warning");
-            }
-
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                if (payloads.length > 0) {
-                    payloads.sort((a, b) => b.length - a.length);
-                    log(`パッカーを解除しました (${payloads[0].length} bytes)`, "success");
-                    resolve(payloads[0]);
-                } else {
-                    resolve(code);
-                }
-            }, 250);
-        });
-    }
-
-    // 強化版 ASTデコーダー (JS Confuser & Obfuscator.io キラー)
-    function decodeStringsAST(code) {
-        // ステップ1: 関数・変数をグローバルに露出させつつ、無限ループを制限するプラグイン
-        const exposePlugin = function({ types: t }) {
-            return {
-                visitor: {
-                    "FunctionDeclaration|FunctionExpression|ArrowFunctionExpression"(path) {
-                        if (path.node.id && path.node.id.name) {
-                            const name = path.node.id.name;
-                            const expose = t.expressionStatement(
-                                t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_fn_" + name)), t.identifier(name))
-                            );
-                            if (t.isBlockStatement(path.node.body)) {
-                                try { path.node.body.body.unshift(expose); } catch(e){}
-                            }
-                        }
-                    },
-                    VariableDeclaration(path) {
-                        if (t.isFor(path.parent) || t.isForInStatement(path.parent) || t.isForOfStatement(path.parent)) return;
-                        const exports =[];
-                        path.node.declarations.forEach(decl => {
-                            if (t.isIdentifier(decl.id)) {
-                                exports.push(
-                                    t.expressionStatement(
-                                        t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_var_" + decl.id.name)), t.identifier(decl.id.name))
-                                    )
-                                );
-                            }
-                        });
-                        if (exports.length > 0) { try { path.insertAfter(exports); } catch(e){} }
-                    },
-                    "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                        const cnt = path.scope.generateUidIdentifier("loop_cnt");
-                        path.insertBefore(t.variableDeclaration("let", [t.variableDeclarator(cnt, t.numericLiteral(0))]));
-                        const limitCheck = t.ifStatement(
-                            t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(50000)),
-                            t.throwStatement(t.newExpression(t.identifier("Error"), [t.stringLiteral("LoopLimit")]))
-                        );
-                        if (t.isBlockStatement(path.node.body)) {
-                            path.node.body.body.unshift(limitCheck);
-                        } else {
-                            path.node.body = t.blockStatement([limitCheck, path.node.body]);
+                    }
+                    // パターン: eval("コード")
+                    else if (Babel.types.isIdentifier(path.node.callee, {name: 'eval'})) {
+                        const args = path.node.arguments;
+                        if (args.length === 1 && Babel.types.isStringLiteral(args[0])) {
+                            payload = args[0].value;
+                            unpacked = true;
+                            path.stop();
                         }
                     }
                 }
-            };
-        };
-
-        let exposeCode = "";
-        try {
-            exposeCode = Babel.transform(code, {
-                ast: false, code: true,
-                plugins: [exposePlugin],
-                parserOpts: { allowReturnOutsideFunction: true }
-            }).code;
+            });
         } catch (e) {
-            log("コード解析(フェーズ1)に失敗: " + e.message, "error");
+            log("静的アンパック中にASTパースエラー: " + e.message, "warning");
+        }
+
+        if (unpacked) log(`Function/eval パッカーからコードを抽出しました (${payload.length} bytes)`, "success");
+        return { code: payload, changed: unpacked };
+    }
+
+    document.getElementById('btn-unpack').addEventListener('click', () => {
+        const code = inputEditor.value;
+        if (!code) return;
+        const res = staticUnpack(code);
+        outputEditor.value = formatCode(res.code);
+    });
+
+    // ==========================================
+    // 2. Safe AST Decoder & Deflattener
+    // ==========================================
+    function decodeAST(code) {
+        let ast;
+        try {
+            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
+        } catch(e) {
+            log("ASTのパースに失敗: " + e.message, "error");
             return { code, changed: false };
         }
 
+        // --- 安全な Sandbox 環境の構築 ---
+        // 悪意のある/フリーズするループを実行させないため、
+        // 「変数宣言」「関数宣言」「配列シフトっぽい処理」のみを抽出して実行環境を作る。
+        let setupCode = "";
+        Babel.traverse(ast, {
+            VariableDeclaration(path) {
+                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
+                    setupCode += Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code + "\n";
+                }
+            },
+            FunctionDeclaration(path) {
+                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
+                    setupCode += Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code + "\n";
+                }
+            },
+            ExpressionStatement(path) {
+                if (path.parent.type === "Program" || path.parent.type === "BlockStatement") {
+                    const snippet = Babel.transformFromAst(Babel.types.program([path.node]), "", {}).code;
+                    // 配列シフト等の初期化処理らしきものを許可
+                    if (snippet.includes('push') || snippet.includes('shift') || snippet.includes('indexOf')) {
+                        setupCode += snippet + "\n";
+                    }
+                }
+            }
+        });
+
+        // サンドボックスで評価 (WebWorkerなしでも安全な部分だけを評価)
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
         const win = iframe.contentWindow;
-
         try {
             win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
-            win.setTimeout = function(){ return 0; };
-            win.setInterval = function(){ return 0; };
-            // メモリ上に解読用環境を安全に構築
-            win.eval(exposeCode);
+            win.setTimeout = function(){}; win.setInterval = function(){};
+            win.eval(setupCode);
         } catch (e) {
-            // 無限ループやエラーが起きてもサンドボックス内で止まるので無視
+            // 無視
         }
 
         let replacedCount = 0;
         let foldedCount = 0;
 
-        // ステップ2: 構築した環境を使って置換・最適化
         const deobfuscatePlugin = function({ types: t }) {
-            const proxyDict = {};
             return {
                 visitor: {
-                    VariableDeclarator(path) {
-                        if (t.isIdentifier(path.node.init)) {
-                            const binding = path.scope.getBinding(path.node.id.name);
-                            if (binding && binding.constant) {
-                                binding.referencePaths.forEach(refPath => {
-                                    refPath.replaceWith(t.identifier(path.node.init.name));
-                                    replacedCount++;
-                                });
-                            }
-                        } else if (t.isObjectExpression(path.node.init) && t.isIdentifier(path.node.id)) {
-                            const objName = path.node.id.name;
-                            proxyDict[objName] = {};
-                            path.node.init.properties.forEach(prop => {
-                                if (t.isObjectProperty(prop)) {
-                                    let keyName = prop.key.name || (t.isLiteral(prop.key) ? prop.key.value : null);
-                                    if (!keyName) return;
-                                    if (t.isFunctionExpression(prop.value) || t.isArrowFunctionExpression(prop.value)) {
-                                        const body = prop.value.body;
-                                        if (t.isBlockStatement(body) && body.body.length === 1 && t.isReturnStatement(body.body[0])) {
-                                            proxyDict[objName][keyName] = { type: 'function', funcNode: prop.value };
-                                        } else if (!t.isBlockStatement(body)) {
-                                            proxyDict[objName][keyName] = { type: 'function_expr', expr: body, params: prop.value.params };
-                                        }
-                                    } else if (t.isStringLiteral(prop.value) || t.isNumericLiteral(prop.value)) {
-                                        proxyDict[objName][keyName] = { type: 'literal', valueNode: prop.value };
-                                    }
-                                }
-                            });
-                        }
-                    },
-                    
-                    MemberExpression(path) {
-                        // 配列アクセス(JS Confuser等)の復元
-                        if (t.isIdentifier(path.node.object) && t.isNumericLiteral(path.node.property)) {
-                            const arrName = path.node.object.name;
-                            const idx = path.node.property.value;
-                            if (win["_var_" + arrName] !== undefined && win["_var_" + arrName] !== null) {
-                                try {
-                                    const val = win["_var_" + arrName][idx];
-                                    if (typeof val === 'string') { path.replaceWith(t.stringLiteral(val)); replacedCount++; return; }
-                                    else if (typeof val === 'number') { path.replaceWith(t.numericLiteral(val)); replacedCount++; return; }
-                                    else if (typeof val === 'boolean') { path.replaceWith(t.booleanLiteral(val)); replacedCount++; return; }
-                                } catch(e){}
-                            }
-                        }
-                        
-                        // オブジェクトプロキシの復元
-                        if (t.isIdentifier(path.node.object)) {
-                            const objName = path.node.object.name;
-                            let keyName = path.node.computed && t.isStringLiteral(path.node.property) ? path.node.property.value : (!path.node.computed && t.isIdentifier(path.node.property) ? path.node.property.name : null);
-                            if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                const entry = proxyDict[objName][keyName];
-                                if (entry.type === 'literal') {
-                                    path.replaceWith(t.cloneNode(entry.valueNode));
-                                    replacedCount++;
-                                }
-                            }
-                        }
-                    },
-                    
+                    // デコーダー関数の評価と置換
                     CallExpression(path) {
-                        // デコーダー関数（難読化文字列解除）の評価
+                        if (path.node._visited) return;
                         if (t.isIdentifier(path.node.callee)) {
                             const funcName = path.node.callee.name;
-                            if (['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt', 'String', 'decodeURIComponent', 'escape', 'atob', 'btoa'].includes(funcName)) return;
+                            // 危険なネイティブ関数は無視
+                            if (['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt', 'String'].includes(funcName)) return;
                             
                             const isLiteral = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
                             
                             if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
-                                if (typeof win["_fn_" + funcName] === 'function') {
+                                if (typeof win[funcName] === 'function') {
                                     try {
-                                        const hookedCall = t.callExpression(
-                                            t.memberExpression(t.identifier("window"), t.identifier("_fn_" + funcName)),
-                                            path.node.arguments
-                                        );
-                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(hookedCall)]), "", {ast:false, code:true}).code;
+                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(path.node)]), "", {ast:false, code:true}).code;
                                         const res = win.eval(callCode);
-                                        if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; return; }
-                                        else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; return; }
-                                        else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; return; }
-                                    } catch(e) {}
-                                }
-                            }
-                        }
-
-                        // プロキシ関数のインライン化
-                        if (t.isMemberExpression(path.node.callee)) {
-                            const mem = path.node.callee;
-                            if (t.isIdentifier(mem.object)) {
-                                const objName = mem.object.name;
-                                let keyName = mem.computed && t.isStringLiteral(mem.property) ? mem.property.value : (!mem.computed && t.isIdentifier(mem.property) ? mem.property.name : null);
-                                
-                                if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                    const entry = proxyDict[objName][keyName];
-                                    if (entry.type === 'function' || entry.type === 'function_expr') {
-                                        let retNode = entry.type === 'function' ? entry.funcNode.body.body[0].argument : entry.expr;
-                                        let params = entry.type === 'function' ? entry.funcNode.params : entry.params;
-                                        const args = path.node.arguments;
-                                        const paramMap = {};
-                                        params.forEach((p, idx) => { if (args[idx]) paramMap[p.name] = args[idx]; });
                                         
-                                        const replaceParams = (node) => {
-                                            if (!node) return null;
-                                            if (t.isIdentifier(node) && paramMap[node.name]) return t.cloneNode(paramMap[node.name], true);
-                                            const cloned = t.cloneNode(node, false);
-                                            for (let key in cloned) {
-                                                if (cloned[key] && typeof cloned[key] === 'object') {
-                                                    if (Array.isArray(cloned[key])) cloned[key] = cloned[key].map(n => replaceParams(n));
-                                                    else if (typeof cloned[key].type === 'string') cloned[key] = replaceParams(cloned[key]);
-                                                }
-                                            }
-                                            return cloned;
-                                        };
-                                        const inlined = replaceParams(retNode);
-                                        if (inlined) { path.replaceWith(inlined); replacedCount++; }
-                                    }
+                                        let newNode = null;
+                                        if (typeof res === 'string') newNode = t.stringLiteral(res);
+                                        else if (typeof res === 'number') newNode = t.numericLiteral(res);
+                                        else if (typeof res === 'boolean') newNode = t.booleanLiteral(res);
+
+                                        if (newNode) {
+                                            newNode._visited = true; // 無限ループ防止フラグ
+                                            path.replaceWith(newNode);
+                                            replacedCount++;
+                                        }
+                                    } catch(e) {}
                                 }
                             }
                         }
                     },
                     
+                    // 定数畳み込み
                     BinaryExpression(path) {
+                        if (path.node._visited) return;
                         try {
                             const evaluated = path.evaluate();
                             if (evaluated.confident) {
-                                if (typeof evaluated.value === 'string') { path.replaceWith(t.stringLiteral(evaluated.value)); foldedCount++; }
-                                else if (typeof evaluated.value === 'number') { path.replaceWith(t.numericLiteral(evaluated.value)); foldedCount++; }
-                                else if (typeof evaluated.value === 'boolean') { path.replaceWith(t.booleanLiteral(evaluated.value)); foldedCount++; }
+                                let newNode = null;
+                                if (typeof evaluated.value === 'string') newNode = t.stringLiteral(evaluated.value);
+                                else if (typeof evaluated.value === 'number') newNode = t.numericLiteral(evaluated.value);
+                                else if (typeof evaluated.value === 'boolean') newNode = t.booleanLiteral(evaluated.value);
+
+                                if (newNode) {
+                                    newNode._visited = true;
+                                    path.replaceWith(newNode);
+                                    foldedCount++;
+                                }
                             }
                         } catch(e){}
                     },
 
+                    // 制御フロー平坦化の解除
                     WhileStatement(path) {
+                        if (path.node._visited) return;
                         const body = path.node.body;
                         if (!t.isBlockStatement(body)) return;
                         const switchStmt = body.body.find(n => t.isSwitchStatement(n));
                         if (!switchStmt) return;
                         
-                        // パターンA: 配列シフト型 (Obfuscator.io)
+                        // パターン: switch(array[x++])
                         if (t.isMemberExpression(switchStmt.discriminant) && t.isUpdateExpression(switchStmt.discriminant.property)) {
                             const arrayName = switchStmt.discriminant.object.name;
                             const binding = path.scope.getBinding(arrayName);
@@ -537,7 +341,7 @@
                                     seq = evalRes.value;
                                 } else {
                                     try { 
-                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {ast: false, code: true}).code;
+                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {}).code;
                                         seq = win.eval(codePart); 
                                     } catch(e) {}
                                 }
@@ -553,19 +357,21 @@
                                     let unflattened =[];
                                     let valid = true;
                                     seq.forEach(key => {
-                                        if (caseMap[key]) unflattened = unflattened.concat(caseMap[key]);
-                                        else valid = false;
+                                        if (caseMap[key]) {
+                                            caseMap[key].forEach(n => { n._visited = true; unflattened.push(n); });
+                                        } else valid = false;
                                     });
                                     
                                     if (valid && unflattened.length > 0) {
+                                        path.node._visited = true;
                                         path.replaceWithMultiple(unflattened);
                                         replacedCount++;
                                     }
                                 }
                             }
                         }
-                        
-                        // パターンB: 状態変数代入型
+
+                        // パターン: switch(state) (Example 4)
                         if (t.isIdentifier(switchStmt.discriminant)) {
                             const stateVarName = switchStmt.discriminant.name;
                             const binding = path.scope.getBinding(stateVarName);
@@ -586,6 +392,7 @@
                                                         continue;
                                                     }
                                                 }
+                                                // ブロックのネスト内の代入をチェック
                                                 if (t.isBlockStatement(stmt)) {
                                                     let innerNextState = null;
                                                     const cleanInner =[];
@@ -596,10 +403,12 @@
                                                                 continue;
                                                             }
                                                         }
+                                                        inner._visited = true;
                                                         cleanInner.push(inner);
                                                     }
                                                     if (innerNextState !== null) { nextState = innerNextState; stmt.body = cleanInner; }
                                                 }
+                                                stmt._visited = true;
                                                 cleanStmts.push(stmt);
                                             }
                                             caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
@@ -617,6 +426,7 @@
                                     }
                                     
                                     if (unflattened.length > 0) {
+                                        path.node._visited = true;
                                         path.replaceWithMultiple(unflattened);
                                         replacedCount++;
                                     }
@@ -629,15 +439,13 @@
         };
 
         try {
-            const transformed = Babel.transform(code, {
-                ast: false, code: true,
-                parserOpts: { allowReturnOutsideFunction: true },
+            const transformed = Babel.transformFromAst(ast, code, {
                 generatorOpts: { jsescOption: { minimal: true } },
                 plugins:[deobfuscatePlugin]
             });
             document.body.removeChild(iframe);
             if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST置換: ロジック解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
+                log(`AST置換: 難読化解除 ${replacedCount}箇所, 定数計算 ${foldedCount}箇所`, "info");
             }
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
@@ -647,26 +455,22 @@
         }
     }
 
-    document.getElementById('btn-dynamic').addEventListener('click', async () => {
-        const code = inputEditor.value;
-        if (!code) return;
-        const unpacked = await dynamicUnpack(code);
-        outputEditor.value = formatCode(unpacked);
-    });
-    
     document.getElementById('btn-strings').addEventListener('click', () => {
         const code = inputEditor.value;
         if (!code) return;
-        const result = decodeStringsAST(code);
+        const result = decodeAST(code);
         outputEditor.value = formatCode(result.code);
     });
 
+    // ==========================================
+    // 3. Deep Auto Deobfuscation (パイプライン統合)
+    // ==========================================
     document.getElementById('btn-auto').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
         
         log("==== Deep Auto Deobfuscation 開始 ====", "success");
-        outputEditor.value = "解析・復元中... (数回繰り返します)";
+        outputEditor.value = "解析・復元中...";
         
         let currentCode = code;
         let prevOverallCode = "";
@@ -678,15 +482,19 @@
             globalIter++;
             log(`[Pass ${globalIter}] アンパックと解析を実行中...`, "warning");
             
-            let unpacked = await dynamicUnpack(currentCode);
-            if (unpacked !== currentCode) currentCode = unpacked;
+            // 1. 静的アンパック (Function("...") 解除)
+            const unpackRes = staticUnpack(currentCode);
+            if (unpackRes.changed) {
+                currentCode = unpackRes.code;
+            }
 
+            // 2. AST デコード (変化がなくなるまで回す)
             let prevAstCode = "";
             let astIter = 0;
             const MAX_AST_ITER = 4;
             while (currentCode !== prevAstCode && astIter < MAX_AST_ITER) {
                 prevAstCode = currentCode;
-                const result = decodeStringsAST(currentCode);
+                const result = decodeAST(currentCode);
                 currentCode = result.code;
                 if (!result.changed) break;
                 astIter++;
