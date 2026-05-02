@@ -13,13 +13,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-        /* モバイルキーボード対策：dvhとfixedを利用し全体のスクロール・見切れを無効化 */
+        /* モバイルキーボード対策：fixedを利用し全体のスクロール・見切れを無効化 */
         html, body {
             margin: 0;
             padding: 0;
             width: 100vw;
             height: 100dvh;
-            position: fixed; /* スクロールバウンスを完全に防止 */
+            position: fixed;
             top: 0;
             left: 0;
             overflow: hidden !important; 
@@ -91,7 +91,7 @@
             white-space: pre-wrap; 
             word-wrap: break-word; 
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* iOSのスクロールを滑らかに */
+            -webkit-overflow-scrolling: touch;
         }
         
         /* ログウィンドウ */
@@ -135,7 +135,7 @@
 </nav>
 
 <div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="強力なAST計装とSandbox解析を用いてコードを復元します">
+    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="強力なAST解析とSandbox解析を用いてコードを復元します">
         <i class="bi bi-magic me-1"></i> Deep Auto
     </button>
     <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack</button>
@@ -171,7 +171,7 @@
     </div>
 </div>
 
-<!-- Babel Standalone (AST Parsing) -->
+<!-- Babel Standalone -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <!-- js-beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
@@ -205,7 +205,6 @@
         log('出力コードをクリップボードにコピーしました。', 'success');
     });
 
-    // 1. js-beautify
     function formatCode(code) {
         if (typeof js_beautify !== 'function') return code;
         try {
@@ -217,6 +216,7 @@
             return code;
         }
     }
+
     document.getElementById('btn-format').addEventListener('click', () => {
         const code = outputEditor.value || inputEditor.value;
         if (!code) return;
@@ -224,55 +224,72 @@
         log("コードの整形が完了しました。", "success");
     });
 
-    // 2. AST計装型 動的アンパッカー (JSDefender キラー)
+    // 動的アンパッカー (JSDefender & Packer キラー)
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
-            log("動的アンパッカーを開始...", "info");
+            log("動的パッカー解析を開始...", "info");
+            
+            let payloads =[];
+            function checkAndPush(payload) {
+                if (typeof payload === 'string' && payload.length > 50) {
+                    try { 
+                        Babel.transform(payload, { ast: false, code: false }); // 構文チェック
+                        payloads.push(payload); 
+                    } catch(e) {}
+                }
+            }
+
+            let instrumentedCode = code;
+            try {
+                // eval呼び出しを強制的にフックするAST置換
+                const evalHookPlugin = function({ types: t }) {
+                    return {
+                        visitor: {
+                            CallExpression(path) {
+                                if (t.isIdentifier(path.node.callee, { name: 'eval' })) {
+                                    path.node.callee.name = '__hook_eval__';
+                                }
+                            }
+                        }
+                    };
+                };
+                instrumentedCode = Babel.transform(code, {
+                    ast: false, code: true,
+                    plugins: [evalHookPlugin],
+                    parserOpts: { allowReturnOutsideFunction: true }
+                }).code;
+            } catch(e) {}
+
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
             const win = iframe.contentWindow;
 
-            let payloads =[];
-            function checkAndPush(payload) {
-                if (typeof payload === 'string' && payload.length > 50) {
-                    try { Babel.transform(payload, { ast: true, code: false }); payloads.push(payload); } catch(e) {}
-                }
-            }
-
-            win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
-            win.onerror = function() { return true; };
-            win.setTimeout = function(){ return 0; };
-            win.setInterval = function(){ return 0; };
-
-            win.__hook_eval__ = function(p) { checkAndPush(p); try{return win.eval(p);}catch(e){} };
-            win.eval = win.__hook_eval__;
-            
-            const origFunction = win.Function;
-            win.Function = function(...args) {
-                if (args.length > 0) checkAndPush(args[args.length - 1]);
-                try { return origFunction.apply(this, args); } catch(e){}
-            };
-            win.Function.prototype = origFunction.prototype;
-
-            const origWrite = win.document.write;
-            win.document.write = function(p) { checkAndPush(p); return origWrite.apply(this, arguments); };
-
-            // ASTでeval呼び出しを強制的にフック関数へ置換
-            let instrumentedCode = code;
             try {
-                const ast = Babel.transform(code, {ast:true, code:false, parserOpts:{allowReturnOutsideFunction:true}}).ast;
-                Babel.traverse(ast, {
-                    CallExpression(path) {
-                        if (path.node.callee.name === 'eval') path.node.callee.name = '__hook_eval__';
-                    }
-                });
-                instrumentedCode = Babel.transformFromAst(ast, code, {}).code;
-            } catch(e) {}
+                win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
+                win.onerror = function() { return true; };
+                win.setTimeout = function(){ return 0; };
+                win.setInterval = function(){ return 0; };
 
-            const script = win.document.createElement('script');
-            script.textContent = instrumentedCode;
-            win.document.body.appendChild(script);
+                win.__hook_eval__ = function(p) { checkAndPush(p); try{return win.eval(p);}catch(e){} };
+                win.eval = win.__hook_eval__;
+                
+                const origFunction = win.Function;
+                win.Function = function(...args) {
+                    if (args.length > 0) checkAndPush(args[args.length - 1]);
+                    try { return origFunction.apply(this, args); } catch(e){}
+                };
+                win.Function.prototype = origFunction.prototype;
+
+                const origWrite = win.document.write;
+                win.document.write = function(p) { checkAndPush(p); return origWrite.apply(this, arguments); };
+
+                const script = win.document.createElement('script');
+                script.textContent = instrumentedCode;
+                win.document.body.appendChild(script);
+            } catch (err) {
+                log(`Sandboxエラー: ${err.message}`, "warning");
+            }
 
             setTimeout(() => {
                 document.body.removeChild(iframe);
@@ -287,65 +304,65 @@
         });
     }
 
-    // 3. 強化版 ASTデコーダー (JS Confuser キラー)
+    // 強化版 ASTデコーダー (JS Confuser & Obfuscator.io キラー)
     function decodeStringsAST(code) {
-        let ast;
-        try {
-            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-        } catch(e) {
-            log("ASTのパースに失敗: " + e.message, "error");
-            return { code, changed: false };
-        }
-
-        // --- Step 1: 全ての関数・配列変数を強制的にグローバル露出させるASTを生成 ---
-        let exposeAst;
-        try {
-            exposeAst = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-        } catch(e) { return { code, changed: false }; }
-
-        Babel.traverse(exposeAst, {
-            "FunctionDeclaration|FunctionExpression|ArrowFunctionExpression"(path) {
-                if (path.node.id && path.node.id.name) {
-                    const name = path.node.id.name;
-                    const expose = Babel.types.expressionStatement(
-                        Babel.types.assignmentExpression("=", Babel.types.memberExpression(Babel.types.identifier("window"), Babel.types.identifier("_fn_" + name)), Babel.types.identifier(name))
-                    );
-                    if (Babel.types.isBlockStatement(path.node.body)) {
-                        try { path.node.body.body.unshift(expose); } catch(e){}
-                    }
-                }
-            },
-            VariableDeclaration(path) {
-                if (Babel.types.isFor(path.parent)) return;
-                const exports =[];
-                path.node.declarations.forEach(decl => {
-                    if (Babel.types.isIdentifier(decl.id)) {
-                        exports.push(
-                            Babel.types.expressionStatement(
-                                Babel.types.assignmentExpression("=", Babel.types.memberExpression(Babel.types.identifier("window"), Babel.types.identifier("_var_" + decl.id.name)), Babel.types.identifier(decl.id.name))
-                            )
+        // ステップ1: 関数・変数をグローバルに露出させつつ、無限ループを制限するプラグイン
+        const exposePlugin = function({ types: t }) {
+            return {
+                visitor: {
+                    "FunctionDeclaration|FunctionExpression|ArrowFunctionExpression"(path) {
+                        if (path.node.id && path.node.id.name) {
+                            const name = path.node.id.name;
+                            const expose = t.expressionStatement(
+                                t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_fn_" + name)), t.identifier(name))
+                            );
+                            if (t.isBlockStatement(path.node.body)) {
+                                try { path.node.body.body.unshift(expose); } catch(e){}
+                            }
+                        }
+                    },
+                    VariableDeclaration(path) {
+                        if (t.isFor(path.parent) || t.isForInStatement(path.parent) || t.isForOfStatement(path.parent)) return;
+                        const exports =[];
+                        path.node.declarations.forEach(decl => {
+                            if (t.isIdentifier(decl.id)) {
+                                exports.push(
+                                    t.expressionStatement(
+                                        t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_var_" + decl.id.name)), t.identifier(decl.id.name))
+                                    )
+                                );
+                            }
+                        });
+                        if (exports.length > 0) { try { path.insertAfter(exports); } catch(e){} }
+                    },
+                    "WhileStatement|ForStatement|DoWhileStatement"(path) {
+                        const cnt = path.scope.generateUidIdentifier("loop_cnt");
+                        path.insertBefore(t.variableDeclaration("let", [t.variableDeclarator(cnt, t.numericLiteral(0))]));
+                        const limitCheck = t.ifStatement(
+                            t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(50000)),
+                            t.throwStatement(t.newExpression(t.identifier("Error"), [t.stringLiteral("LoopLimit")]))
                         );
+                        if (t.isBlockStatement(path.node.body)) {
+                            path.node.body.body.unshift(limitCheck);
+                        } else {
+                            path.node.body = t.blockStatement([limitCheck, path.node.body]);
+                        }
                     }
-                });
-                if (exports.length > 0) { try { path.insertAfter(exports); } catch(e){} }
-            },
-            "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                const cnt = path.scope.generateUidIdentifier("loop_cnt");
-                path.insertBefore(Babel.types.variableDeclaration("let",[Babel.types.variableDeclarator(cnt, Babel.types.numericLiteral(0))]));
-                const limitCheck = Babel.types.ifStatement(
-                    Babel.types.binaryExpression(">", Babel.types.updateExpression("++", cnt), Babel.types.numericLiteral(50000)),
-                    Babel.types.throwStatement(Babel.types.newExpression(Babel.types.identifier("Error"),[Babel.types.stringLiteral("LoopLimit")]))
-                );
-                if (Babel.types.isBlockStatement(path.node.body)) {
-                    path.node.body.body.unshift(limitCheck);
-                } else {
-                    path.node.body = Babel.types.blockStatement([limitCheck, path.node.body]);
                 }
-            }
-        });
+            };
+        };
 
         let exposeCode = "";
-        try { exposeCode = Babel.transformFromAst(exposeAst, "", {}).code; } catch (e) {}
+        try {
+            exposeCode = Babel.transform(code, {
+                ast: false, code: true,
+                plugins: [exposePlugin],
+                parserOpts: { allowReturnOutsideFunction: true }
+            }).code;
+        } catch (e) {
+            log("コード解析(フェーズ1)に失敗: " + e.message, "error");
+            return { code, changed: false };
+        }
 
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
@@ -354,52 +371,143 @@
 
         try {
             win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
-            win.setTimeout = function(){}; win.setInterval = function(){};
-            // 保護されたコードを実行し、関数/配列をメモリに構築
+            win.setTimeout = function(){ return 0; };
+            win.setInterval = function(){ return 0; };
+            // メモリ上に解読用環境を安全に構築
             win.eval(exposeCode);
-        } catch (e) {}
+        } catch (e) {
+            // 無限ループやエラーが起きてもサンドボックス内で止まるので無視
+        }
 
         let replacedCount = 0;
         let foldedCount = 0;
 
-        // --- Step 2: 元のASTを探索し、関数呼び出しや配列アクセスを直接評価して置換 ---
+        // ステップ2: 構築した環境を使って置換・最適化
         const deobfuscatePlugin = function({ types: t }) {
+            const proxyDict = {};
             return {
                 visitor: {
+                    VariableDeclarator(path) {
+                        if (t.isIdentifier(path.node.init)) {
+                            const binding = path.scope.getBinding(path.node.id.name);
+                            if (binding && binding.constant) {
+                                binding.referencePaths.forEach(refPath => {
+                                    refPath.replaceWith(t.identifier(path.node.init.name));
+                                    replacedCount++;
+                                });
+                            }
+                        } else if (t.isObjectExpression(path.node.init) && t.isIdentifier(path.node.id)) {
+                            const objName = path.node.id.name;
+                            proxyDict[objName] = {};
+                            path.node.init.properties.forEach(prop => {
+                                if (t.isObjectProperty(prop)) {
+                                    let keyName = prop.key.name || (t.isLiteral(prop.key) ? prop.key.value : null);
+                                    if (!keyName) return;
+                                    if (t.isFunctionExpression(prop.value) || t.isArrowFunctionExpression(prop.value)) {
+                                        const body = prop.value.body;
+                                        if (t.isBlockStatement(body) && body.body.length === 1 && t.isReturnStatement(body.body[0])) {
+                                            proxyDict[objName][keyName] = { type: 'function', funcNode: prop.value };
+                                        } else if (!t.isBlockStatement(body)) {
+                                            proxyDict[objName][keyName] = { type: 'function_expr', expr: body, params: prop.value.params };
+                                        }
+                                    } else if (t.isStringLiteral(prop.value) || t.isNumericLiteral(prop.value)) {
+                                        proxyDict[objName][keyName] = { type: 'literal', valueNode: prop.value };
+                                    }
+                                }
+                            });
+                        }
+                    },
+                    
+                    MemberExpression(path) {
+                        // 配列アクセス(JS Confuser等)の復元
+                        if (t.isIdentifier(path.node.object) && t.isNumericLiteral(path.node.property)) {
+                            const arrName = path.node.object.name;
+                            const idx = path.node.property.value;
+                            if (win["_var_" + arrName] !== undefined && win["_var_" + arrName] !== null) {
+                                try {
+                                    const val = win["_var_" + arrName][idx];
+                                    if (typeof val === 'string') { path.replaceWith(t.stringLiteral(val)); replacedCount++; return; }
+                                    else if (typeof val === 'number') { path.replaceWith(t.numericLiteral(val)); replacedCount++; return; }
+                                    else if (typeof val === 'boolean') { path.replaceWith(t.booleanLiteral(val)); replacedCount++; return; }
+                                } catch(e){}
+                            }
+                        }
+                        
+                        // オブジェクトプロキシの復元
+                        if (t.isIdentifier(path.node.object)) {
+                            const objName = path.node.object.name;
+                            let keyName = path.node.computed && t.isStringLiteral(path.node.property) ? path.node.property.value : (!path.node.computed && t.isIdentifier(path.node.property) ? path.node.property.name : null);
+                            if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
+                                const entry = proxyDict[objName][keyName];
+                                if (entry.type === 'literal') {
+                                    path.replaceWith(t.cloneNode(entry.valueNode));
+                                    replacedCount++;
+                                }
+                            }
+                        }
+                    },
+                    
                     CallExpression(path) {
+                        // デコーダー関数（難読化文字列解除）の評価
                         if (t.isIdentifier(path.node.callee)) {
                             const funcName = path.node.callee.name;
+                            if (['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt', 'String', 'decodeURIComponent', 'escape', 'atob', 'btoa'].includes(funcName)) return;
+                            
                             const isLiteral = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
                             
                             if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
                                 if (typeof win["_fn_" + funcName] === 'function') {
                                     try {
-                                        // 引数をシリアライズして呼び出し
-                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(path.node)]), "", {ast:false, code:true}).code;
-                                        const hookedCall = callCode.replace(funcName, "window._fn_" + funcName);
-                                        const res = win.eval(hookedCall);
-                                        if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; }
-                                        else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; }
-                                        else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; }
+                                        const hookedCall = t.callExpression(
+                                            t.memberExpression(t.identifier("window"), t.identifier("_fn_" + funcName)),
+                                            path.node.arguments
+                                        );
+                                        const callCode = Babel.transformFromAst(t.program([t.expressionStatement(hookedCall)]), "", {ast:false, code:true}).code;
+                                        const res = win.eval(callCode);
+                                        if (typeof res === 'string') { path.replaceWith(t.stringLiteral(res)); replacedCount++; return; }
+                                        else if (typeof res === 'number') { path.replaceWith(t.numericLiteral(res)); replacedCount++; return; }
+                                        else if (typeof res === 'boolean') { path.replaceWith(t.booleanLiteral(res)); replacedCount++; return; }
                                     } catch(e) {}
                                 }
                             }
                         }
-                    },
-                    MemberExpression(path) {
-                        if (t.isIdentifier(path.node.object) && t.isNumericLiteral(path.node.property)) {
-                            const arrName = path.node.object.name;
-                            const idx = path.node.property.value;
-                            if (win["_var_" + arrName] !== undefined && typeof win["_var_" + arrName] === 'object' && win["_var_" + arrName] !== null) {
-                                try {
-                                    const val = win["_var_" + arrName][idx];
-                                    if (typeof val === 'string') { path.replaceWith(t.stringLiteral(val)); replacedCount++; }
-                                    else if (typeof val === 'number') { path.replaceWith(t.numericLiteral(val)); replacedCount++; }
-                                    else if (typeof val === 'boolean') { path.replaceWith(t.booleanLiteral(val)); replacedCount++; }
-                                } catch(e){}
+
+                        // プロキシ関数のインライン化
+                        if (t.isMemberExpression(path.node.callee)) {
+                            const mem = path.node.callee;
+                            if (t.isIdentifier(mem.object)) {
+                                const objName = mem.object.name;
+                                let keyName = mem.computed && t.isStringLiteral(mem.property) ? mem.property.value : (!mem.computed && t.isIdentifier(mem.property) ? mem.property.name : null);
+                                
+                                if (keyName && proxyDict[objName] && proxyDict[objName][keyName]) {
+                                    const entry = proxyDict[objName][keyName];
+                                    if (entry.type === 'function' || entry.type === 'function_expr') {
+                                        let retNode = entry.type === 'function' ? entry.funcNode.body.body[0].argument : entry.expr;
+                                        let params = entry.type === 'function' ? entry.funcNode.params : entry.params;
+                                        const args = path.node.arguments;
+                                        const paramMap = {};
+                                        params.forEach((p, idx) => { if (args[idx]) paramMap[p.name] = args[idx]; });
+                                        
+                                        const replaceParams = (node) => {
+                                            if (!node) return null;
+                                            if (t.isIdentifier(node) && paramMap[node.name]) return t.cloneNode(paramMap[node.name], true);
+                                            const cloned = t.cloneNode(node, false);
+                                            for (let key in cloned) {
+                                                if (cloned[key] && typeof cloned[key] === 'object') {
+                                                    if (Array.isArray(cloned[key])) cloned[key] = cloned[key].map(n => replaceParams(n));
+                                                    else if (typeof cloned[key].type === 'string') cloned[key] = replaceParams(cloned[key]);
+                                                }
+                                            }
+                                            return cloned;
+                                        };
+                                        const inlined = replaceParams(retNode);
+                                        if (inlined) { path.replaceWith(inlined); replacedCount++; }
+                                    }
+                                }
                             }
                         }
                     },
+                    
                     BinaryExpression(path) {
                         try {
                             const evaluated = path.evaluate();
@@ -410,63 +518,108 @@
                             }
                         } catch(e){}
                     },
+
                     WhileStatement(path) {
-                        // 制御フロー平坦化の解除 (単一変数の状態遷移)
                         const body = path.node.body;
                         if (!t.isBlockStatement(body)) return;
                         const switchStmt = body.body.find(n => t.isSwitchStatement(n));
-                        if (!switchStmt || !t.isIdentifier(switchStmt.discriminant)) return;
+                        if (!switchStmt) return;
                         
-                        const stateVarName = switchStmt.discriminant.name;
-                        const binding = path.scope.getBinding(stateVarName);
-                        if (binding && binding.path.isVariableDeclarator()) {
-                            const initVal = binding.path.node.init;
-                            if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
-                                let currentState = initVal.value;
-                                const caseMap = {};
-                                switchStmt.cases.forEach(c => {
-                                    if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
-                                        const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
-                                        let nextState = null;
-                                        const cleanStmts =[];
-                                        for (const stmt of stmts) {
-                                            if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) && t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
-                                                if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) {
-                                                    nextState = stmt.expression.right.value;
-                                                    continue;
-                                                }
-                                            }
-                                            if (t.isBlockStatement(stmt)) {
-                                                let innerNextState = null;
-                                                const cleanInner =[];
-                                                for (const inner of stmt.body) {
-                                                    if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) && t.isIdentifier(inner.expression.left, { name: stateVarName })) {
-                                                        if (t.isNumericLiteral(inner.expression.right) || t.isStringLiteral(inner.expression.right)) {
-                                                            innerNextState = inner.expression.right.value;
-                                                            continue;
-                                                        }
-                                                    }
-                                                    cleanInner.push(inner);
-                                                }
-                                                if (innerNextState !== null) { nextState = innerNextState; stmt.body = cleanInner; }
-                                            }
-                                            cleanStmts.push(stmt);
-                                        }
-                                        caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
-                                    }
-                                });
-                                
-                                const unflattened =[];
-                                let curr = currentState;
-                                let visited = new Set();
-                                while (curr !== null && caseMap[curr] && !visited.has(curr)) {
-                                    visited.add(curr);
-                                    unflattened.push(...caseMap[curr].stmts);
-                                    curr = caseMap[curr].nextState;
+                        // パターンA: 配列シフト型 (Obfuscator.io)
+                        if (t.isMemberExpression(switchStmt.discriminant) && t.isUpdateExpression(switchStmt.discriminant.property)) {
+                            const arrayName = switchStmt.discriminant.object.name;
+                            const binding = path.scope.getBinding(arrayName);
+                            if (binding && binding.path.isVariableDeclarator()) {
+                                const init = binding.path.node.init;
+                                let seq;
+                                const evalRes = binding.path.get('init').evaluate();
+                                if (evalRes.confident && Array.isArray(evalRes.value)) {
+                                    seq = evalRes.value;
+                                } else {
+                                    try { 
+                                        const codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {ast: false, code: true}).code;
+                                        seq = win.eval(codePart); 
+                                    } catch(e) {}
                                 }
-                                if (unflattened.length > 0) {
-                                    path.replaceWithMultiple(unflattened);
-                                    replacedCount++;
+                                
+                                if (Array.isArray(seq)) {
+                                    const caseMap = {};
+                                    switchStmt.cases.forEach(c => {
+                                        if (c.test && (t.isStringLiteral(c.test) || t.isNumericLiteral(c.test))) {
+                                            caseMap[c.test.value] = c.consequent.filter(n => !t.isContinueStatement(n) && !t.isBreakStatement(n));
+                                        }
+                                    });
+                                    
+                                    let unflattened =[];
+                                    let valid = true;
+                                    seq.forEach(key => {
+                                        if (caseMap[key]) unflattened = unflattened.concat(caseMap[key]);
+                                        else valid = false;
+                                    });
+                                    
+                                    if (valid && unflattened.length > 0) {
+                                        path.replaceWithMultiple(unflattened);
+                                        replacedCount++;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // パターンB: 状態変数代入型
+                        if (t.isIdentifier(switchStmt.discriminant)) {
+                            const stateVarName = switchStmt.discriminant.name;
+                            const binding = path.scope.getBinding(stateVarName);
+                            if (binding && binding.path.isVariableDeclarator()) {
+                                const initVal = binding.path.node.init;
+                                if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
+                                    let currentState = initVal.value;
+                                    const caseMap = {};
+                                    switchStmt.cases.forEach(c => {
+                                        if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
+                                            const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
+                                            let nextState = null;
+                                            const cleanStmts =[];
+                                            for (const stmt of stmts) {
+                                                if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) && t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
+                                                    if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) {
+                                                        nextState = stmt.expression.right.value;
+                                                        continue;
+                                                    }
+                                                }
+                                                if (t.isBlockStatement(stmt)) {
+                                                    let innerNextState = null;
+                                                    const cleanInner =[];
+                                                    for (const inner of stmt.body) {
+                                                        if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) && t.isIdentifier(inner.expression.left, { name: stateVarName })) {
+                                                            if (t.isNumericLiteral(inner.expression.right) || t.isStringLiteral(inner.expression.right)) {
+                                                                innerNextState = inner.expression.right.value;
+                                                                continue;
+                                                            }
+                                                        }
+                                                        cleanInner.push(inner);
+                                                    }
+                                                    if (innerNextState !== null) { nextState = innerNextState; stmt.body = cleanInner; }
+                                                }
+                                                cleanStmts.push(stmt);
+                                            }
+                                            caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
+                                        }
+                                    });
+                                    
+                                    const unflattened =[];
+                                    let curr = currentState;
+                                    let visited = new Set();
+                                    
+                                    while (curr !== null && caseMap[curr] && !visited.has(curr)) {
+                                        visited.add(curr);
+                                        unflattened.push(...caseMap[curr].stmts);
+                                        curr = caseMap[curr].nextState;
+                                    }
+                                    
+                                    if (unflattened.length > 0) {
+                                        path.replaceWithMultiple(unflattened);
+                                        replacedCount++;
+                                    }
                                 }
                             }
                         }
@@ -476,18 +629,20 @@
         };
 
         try {
-            const transformed = Babel.transformFromAst(ast, code, {
+            const transformed = Babel.transform(code, {
+                ast: false, code: true,
+                parserOpts: { allowReturnOutsideFunction: true },
                 generatorOpts: { jsescOption: { minimal: true } },
-                plugins: [deobfuscatePlugin]
+                plugins:[deobfuscatePlugin]
             });
             document.body.removeChild(iframe);
             if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST置換: ロジック・配列解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
+                log(`AST置換: ロジック解除 ${replacedCount}箇所, 定数畳み込み ${foldedCount}箇所`, "info");
             }
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
             document.body.removeChild(iframe);
-            log("AST変換エラー: " + e.message, "error");
+            log("AST変換・置換エラー: " + e.message, "error");
             return { code, changed: false };
         }
     }
@@ -511,7 +666,7 @@
         if (!code) return;
         
         log("==== Deep Auto Deobfuscation 開始 ====", "success");
-        outputEditor.value = "解析・復元中... (コードの変化が止まるまで深く反復します)";
+        outputEditor.value = "解析・復元中... (数回繰り返します)";
         
         let currentCode = code;
         let prevOverallCode = "";
