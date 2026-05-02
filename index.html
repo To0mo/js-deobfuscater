@@ -68,19 +68,17 @@
     <div class="log-content" id="log-content"></div>
 </div>
 
-<!-- Babel Standalone (AST Parsing & Manipulation) -->
+<!-- Babel Standalone (AST Parsing) -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Prettier (Code Formatting) -->
-<script src="https://unpkg.com/prettier@3.0.3/standalone.js"></script>
-<script src="https://unpkg.com/prettier@3.0.3/plugins/estree.js"></script>
-<script src="https://unpkg.com/prettier@3.0.3/plugins/babel.js"></script>
+<!-- js-beautify (Synchronous Code Formatting) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautifier.min.js"></script>
 
 <script>
     const inputEditor = document.getElementById('input-editor');
     const outputEditor = document.getElementById('output-editor');
     const logContent = document.getElementById('log-content');
 
-    // ログ出力用関数
+    // ログ出力
     function log(message, type = 'info') {
         const entry = document.createElement('div');
         entry.className = `log-entry ${type}`;
@@ -111,16 +109,15 @@
         log('出力コードをクリップボードにコピーしました。', 'success');
     });
 
-    // コード整形エンジン (Prettier)
+    // js-beautify による同期フォーマット
     function formatCode(code) {
         try {
-            return prettier.format(code, {
-                parser: "babel",
-                plugins: prettierPlugins,
-                singleQuote: true,
-                trailingComma: "none",
-                tabWidth: 4,
-                printWidth: 120
+            return js_beautify(code, {
+                indent_size: 4,
+                space_in_empty_paren: true,
+                preserve_newlines: true,
+                max_preserve_newlines: 2,
+                jslint_happy: true
             });
         } catch (e) {
             log("フォーマット中にエラーが発生しました: " + e.message, "warning");
@@ -136,63 +133,75 @@
         log("コードを正常にフォーマットしました。", "success");
     });
 
-    // 動的アンパッカー (Eval / Functionのフック)
-    // 添付例2, 例4のような eval() や Function() で自身を展開する手法に有効です
+    // 動的アンパッカー (Eval / Function フック)
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
             log("動的アンパッカー (Eval/Functionフック) を開始...", "info");
             
-            // 安全なSandbox iframeを生成
             const iframe = document.createElement('iframe');
-            iframe.setAttribute('sandbox', 'allow-scripts');
+            // allow-same-origin が無いと contentWindow や document にアクセスできない
+            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
             
-            const win = iframe.contentWindow;
             let payloads = [];
 
-            // ログのスパム防止のためコンソール出力を無効化
-            win.console = { log: () => {}, warn: () => {}, error: () => {}, info: () => {} };
+            try {
+                const win = iframe.contentWindow;
+                
+                // コンソールをモック化してログの汚染を防ぐ
+                win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
 
-            // eval をフック
-            const origEval = win.eval;
-            win.eval = function(payload) {
-                if (typeof payload === 'string' && payload.length > 50) {
-                    payloads.push(payload);
-                    log(`eval()の呼び出しを傍受しました。(サイズ: ${payload.length} bytes)`, "success");
-                }
-                return origEval.apply(this, arguments);
-            };
-
-            // Function をフック
-            const origFunc = win.Function;
-            const hookedFunc = function(...args) {
-                if (args.length > 0) {
-                    const payload = args[args.length - 1];
+                // eval をフック
+                const origEval = win.eval;
+                win.eval = function(payload) {
                     if (typeof payload === 'string' && payload.length > 50) {
                         payloads.push(payload);
-                        log(`Function()の呼び出しを傍受しました。(サイズ: ${payload.length} bytes)`, "success");
+                        log(`eval()の呼び出しを傍受しました。(サイズ: ${payload.length} bytes)`, "success");
                     }
-                }
-                return origFunc.apply(this, args);
-            };
-            win.Function = hookedFunc;
-            win.Function.prototype = origFunc.prototype;
-            win.Function.prototype.constructor = hookedFunc;
-            
-            try {
-                // Sandbox内で難読化コードを実行
-                const runner = origFunc(code);
-                runner();
-            } catch (e) {
-                log("Sandboxの実行が完了したか、例外により停止しました。(正常動作)", "info");
+                    return origEval.apply(this, arguments);
+                };
+
+                // Function をフック
+                const origFunction = win.Function;
+                const hookedFunction = function(...args) {
+                    if (args.length > 0) {
+                        const payload = args[args.length - 1];
+                        if (typeof payload === 'string' && payload.length > 50) {
+                            payloads.push(payload);
+                            log(`Function()の呼び出しを傍受しました。(サイズ: ${payload.length} bytes)`, "success");
+                        }
+                    }
+                    return origFunction.apply(this, args);
+                };
+                win.Function = hookedFunction;
+                win.Function.prototype = origFunction.prototype;
+                win.Function.prototype.constructor = hookedFunction;
+
+                // スクリプトの実行（ブラウザネイティブのフローを再現）
+                const script = win.document.createElement('script');
+                
+                // タイマーやリダイレクトによる無限ループ・クラッシュの防止策
+                const safeCode = `
+                    window.setTimeout = function(){};
+                    window.setInterval = function(){};
+                    window.location.reload = function(){};
+                    try {
+                        ${code}
+                    } catch(e) {}
+                `;
+                script.textContent = safeCode;
+                win.document.body.appendChild(script);
+
+            } catch (err) {
+                log(`Sandbox構築または実行中にエラー: ${err.message}`, "error");
             }
 
-            // 非同期実行のための少しの待機時間
+            // 実行猶予を与えた後に抽出結果を評価
             setTimeout(() => {
                 document.body.removeChild(iframe);
                 if (payloads.length > 0) {
-                    // 最も長いペイロードが最終展開コードである可能性が高い
+                    // 一番長い文字列（最終的に展開されたコードである可能性が高い）を採用
                     payloads.sort((a, b) => b.length - a.length);
                     const bestPayload = payloads[0];
                     log(`展開されたペイロードを抽出しました。 (${bestPayload.length} bytes)`, "success");
@@ -201,7 +210,7 @@
                     log("動的展開の形跡は見つかりませんでした。", "warning");
                     resolve(code);
                 }
-            }, 300);
+            }, 600);
         });
     }
 
@@ -212,8 +221,7 @@
         outputEditor.value = formatCode(unpacked);
     });
 
-    // AST ベースの文字列デコーダー
-    // Obfuscator.io などの難読化 (添付例1, 例3) による文字列の置換ロジックを解析して解除します
+    // AST ベースの文字列デコーダー (Obfuscator.io 等の文字列配列と抽出関数の解除)
     function decodeStringsAST(code) {
         log("ASTによる文字列配列・デコーダー関数の解決を開始...", "info");
         let ast;
@@ -241,7 +249,7 @@
             return types.every(t => found[t]);
         }
 
-        // Shifter IIFE (配列をシャッフルする即時関数) を識別する
+        // Shifter IIFE (配列をシャッフルする即時関数) を識別
         function isShifter(node) {
             if (node.type === 'ExpressionStatement' && node.expression.type === 'CallExpression') {
                 const callee = node.expression.callee;
@@ -252,22 +260,23 @@
             return false;
         }
 
-        // アプリケーションロジックをSandboxに巻き込まないために、安全な変数宣言のみに絞る
+        // 安全な変数宣言（デコーダー配列など）
         function isSafeVarDec(node) {
             if (node.type !== 'VariableDeclaration') return false;
             return node.declarations.every(decl => {
                 if (!decl.init) return true;
                 const type = decl.init.type;
-                return ['FunctionExpression', 'ArrowFunctionExpression', 'ArrayExpression', 'StringLiteral', 'NumericLiteral', 'BooleanLiteral', 'Identifier'].includes(type);
+                return ['FunctionExpression', 'ArrowFunctionExpression', 'ArrayExpression', 'StringLiteral', 'NumericLiteral', 'BooleanLiteral', 'Identifier'].includes(type) || 
+                       (type === 'CallExpression'); // 配列を返すIIFEを考慮
             });
         }
 
-        // コード全体からデコーダー関数と文字列配列に関連するトップレベルのノードだけを抽出
+        // トップレベルからデコーダーロジックを抽出
         body.forEach(node => {
             if (node.type === 'FunctionDeclaration') {
                 setupCode += code.substring(node.start, node.end) + "\n";
                 setupNodesCount++;
-            } else if (node.type === 'VariableDeclaration' && isSafeVarDec(node)) {
+            } else if (isSafeVarDec(node)) {
                 setupCode += code.substring(node.start, node.end) + "\n";
                 setupNodesCount++;
             } else if (isShifter(node)) {
@@ -280,18 +289,18 @@
 
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
-        iframe.setAttribute('sandbox', 'allow-scripts');
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
         document.body.appendChild(iframe);
         const win = iframe.contentWindow;
 
         win.console = { log: () => {}, warn: () => {}, error: () => {} };
 
         try {
-            // 文字列デコーダーの初期化（ブラウザ内で実際に実行・構築させる）
+            // 文字列デコーダーの初期化（ブラウザ内で実際に実行）
             win.eval(setupCode);
             log("Sandbox内でのデコーダー初期化に成功しました。", "success");
         } catch (e) {
-            log("警告: Sandboxでのデコーダー初期化中に例外が発生しました。", "warning");
+            log(`警告: Sandboxでのデコーダー初期化中に例外が発生しました (${e.message})`, "warning");
         }
 
         let replacedCount = 0;
@@ -308,14 +317,14 @@
                                         const funcName = path.node.callee.name;
                                         
                                         // Sandboxで実行させたくないネイティブ関数などを除外
-                                        if (['require', 'eval', 'setTimeout', 'setInterval', 'Function'].includes(funcName)) return;
+                                        if (['require', 'eval', 'setTimeout', 'setInterval', 'Function', 'console'].includes(funcName)) return;
 
                                         const isLiteral = (arg) => 
                                             arg.type === 'NumericLiteral' || 
                                             arg.type === 'StringLiteral' ||
                                             (arg.type === 'UnaryExpression' && arg.argument.type === 'NumericLiteral');
                                             
-                                        // 引数が全てリテラル値の場合のみデコーダー関数と見なし実行テスト
+                                        // 引数が全てリテラルの場合のみ実行テスト
                                         if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
                                             const callCode = code.substring(path.node.start, path.node.end);
                                             try {
@@ -360,7 +369,7 @@
         outputEditor.value = formatCode(decoded);
     });
 
-    // Auto パイプライン実行（推奨）
+    // Auto パイプライン実行
     document.getElementById('btn-auto').addEventListener('click', async () => {
         const code = inputEditor.value;
         if (!code) return;
@@ -371,7 +380,7 @@
         // Step 1: 動的アンパッカー
         let currentCode = await dynamicUnpack(code);
         
-        // Step 2: AST 文字列デコーダー（ネストされた難読化に対応するため複数回実行）
+        // Step 2: AST 文字列デコーダー（難読化の多重レイヤーに対応するため2回実行）
         let previousCode = "";
         let iterations = 0;
         while (currentCode !== previousCode && iterations < 2) {
@@ -380,7 +389,7 @@
             iterations++;
         }
         
-        // Step 3: フォーマット
+        // Step 3: JS-Beautify フォーマット
         currentCode = formatCode(currentCode);
         outputEditor.value = currentCode;
         log("Auto Deobfuscation パイプラインが完了しました。", "success");
