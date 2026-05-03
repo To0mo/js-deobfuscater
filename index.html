@@ -793,7 +793,7 @@
                                             return cloned;
                                         };
                                         const inlined = replaceParams(retNode);
-                                        if (inlined && typeof inlined.type === 'string') { path.replaceWith(inlined); replacedCount++; }
+                                        if (inlined && typeof inlined.type === 'string') { path.replaceWith(inlined); replacedCount++; return;}
                                     }
                                 }
                             }
