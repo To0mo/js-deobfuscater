@@ -300,14 +300,40 @@
                 win.onerror = function() { return true; }; // 繧ｨ繝ｩ繝ｼ繧呈椛豁｢
 
                 // 繝壹う繝ｭ繝ｼ繝峨′譛牙柑縺ｪJS縺区､懆ｨｼ
+                // ペイロードが有効なJSか検証
                 function checkAndPush(payload) {
                     if (typeof payload === 'string' && payload.length > 0) {
                         try {
-                            Babel.transform(payload, { ast: true, code: false }); // 讒区枚繝√ぉ繝・け
+                            Babel.transform(payload, { ast: true, code: false }); // 構文チェック
                             payloads.push(payload);
-                        } catch(e) {}
+                        } catch(e) {
+                            // パースエラーでも式としてパース可能か、あるいは十分な長さがあれば保存
+                            try {
+                                Babel.transform(`(${payload})`, { ast: true, code: false });
+                                payloads.push(payload);
+                            } catch(e2) {
+                                if (payload.length > 50) payloads.push(payload);
+                            }
+                        }
                     }
                 }
+
+                const origEval = win.eval;
+                win.eval = function(payload) {
+                    checkAndPush(payload);
+                    try { return origEval.apply(this, arguments); } catch(e){}
+                };
+
+                const origFunction = win.Function;
+                const hookedFunction = function(...args) {
+                    if (args.length > 0) checkAndPush(args[args.length - 1]);
+                    // Example 1 のような自己展開パッカーが最後まで実行されるよう、オリジナルを実行する
+                    try {
+                        return origFunction.apply(this, args);
+                    } catch(e) {
+                        return function() {};
+                    }
+                };
 
                 const origEval = win.eval;
                 win.eval = function(payload) {
@@ -432,6 +458,7 @@
             if (setupCode.trim()) {
                 try {
                     setupCode = Babel.transform(setupCode, {
+                        presets: ['env'], // ES6の変数をvarに変換してSandbox上のグローバルにバインド
                         plugins: [loopLimitPlugin],
                         parserOpts: { allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true }
                     }).code;
@@ -479,7 +506,14 @@
             const noOpWrappers = new Set();
             const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console']);
 
-            const isLiteralLike = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
+            const isLiteralLike = (arg) => {
+                if (t.isLiteral(arg)) return true;
+                if (t.isUnaryExpression(arg) && t.isLiteral(arg.argument)) return true;
+                // ![] や !![] への対応
+                if (t.isUnaryExpression(arg, {operator: '!'}) && t.isArrayExpression(arg.argument) && arg.argument.elements.length === 0) return true;
+                if (t.isUnaryExpression(arg, {operator: '!'}) && t.isUnaryExpression(arg.argument, {operator: '!'}) && t.isArrayExpression(arg.argument.argument) && arg.argument.argument.elements.length === 0) return true;
+                return false;
+            };
 
             const toLiteralNode = (value) => {
                 if (typeof value === 'string') return t.stringLiteral(value);
@@ -801,37 +835,27 @@
                             }
                         }
 
-                        if (t.isIdentifier(path.node.callee) && noOpWrappers.has(path.node.callee.name)) {
-                            const args = path.node.arguments.map((arg) => t.cloneNode(arg, true));
-                            if (args.length === 0) {
-                                path.replaceWith(t.unaryExpression('void', t.numericLiteral(0), true));
-                            } else if (args.length === 1) {
-                                path.replaceWith(args[0]);
-                            } else {
-                                path.replaceWith(t.sequenceExpression(args));
-                            }
-                            replacedCount++;
-                            return;
-                        }
-
-                        // 4. 譁・ｭ怜・繝・さ繝ｼ繝繝ｼ隧穂ｾ｡
                         if (t.isIdentifier(path.node.callee)) {
                             const funcName = path.node.callee.name;
                             if (blockedCallees.has(funcName)) return;
                             
-                            const isLiteral = isLiteralLike;
-                            
-                            if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteral)) {
+                            let argsConfident = true;
+                            path.get('arguments').forEach(argPath => {
+                                if (!argPath.evaluate().confident && !isLiteralLike(argPath.node)) argsConfident = false;
+                            });
+                            if (argsConfident) {
                                 const callCode = code.substring(path.node.start, path.node.end);
                                 try {
                                     const res = win.eval(callCode);
-                                    const literalNode = toLiteralNode(res);
-                                    if (literalNode) { path.replaceWith(literalNode); replacedCount++; return; }
+                                    if (res !== undefined && res !== null && typeof res !== 'function') {
+                                        const literalNode = toLiteralNode(res);
+                                        if (literalNode) { path.replaceWith(literalNode); replacedCount++; return; }
+                                    }
                                 } catch (e) {}
                             }
                         }
 
-                        // 5. Inline proxy function calls
+                        // 5. Inline proxy function calls と MemberExpression関数の動的評価
                         if (t.isMemberExpression(path.node.callee)) {
                             const mem = path.node.callee;
                             if (t.isIdentifier(mem.object)) {
@@ -846,11 +870,10 @@
                                         let params = entry.type === 'function' ? entry.funcNode.params : entry.params;
                                         const args = path.node.arguments;
                                         const paramMap = {};
-                                        const safeParams = Array.isArray(params) ? params : [];
+                                        const safeParams = Array.isArray(params) ? params :[];
                                         safeParams.forEach((p, idx) => {
                                             if (args[idx] && t.isIdentifier(p)) paramMap[p.name] = args[idx];
                                         });
-                                        
                                         const replaceParams = (node) => {
                                             if (Array.isArray(node)) {
                                                 return node.map((n) => replaceParams(n)).filter((n) => n !== undefined);
@@ -1001,37 +1024,60 @@
                         }
                         
                         // 繝代ち繝ｼ繝ｳB: 迥ｶ諷句､画焚莉｣蜈･蝙・(Example 4蟇ｾ蠢・
+                        // パターンB: 状態変数代入型 (Example 4, Example 2対応)
                         if (t.isIdentifier(switchStmt.discriminant)) {
                             const stateVarName = switchStmt.discriminant.name;
                             const binding = path.scope.getBinding(stateVarName);
-                            if (binding && binding.path.isVariableDeclarator()) {
+                            if (binding && binding.path.isVariableDeclarator() && binding.path.node.init) {
                                 const initVal = binding.path.node.init;
+                                let currentState = null;
+                                
                                 if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
-                                    let currentState = initVal.value;
+                                    currentState = initVal.value;
+                                } else {
+                                    // 初期値が関数呼び出し等ならSandboxで評価
+                                    try {
+                                        let codePart = code.slice(initVal.start, initVal.end);
+                                        currentState = win.eval(codePart);
+                                    } catch(e) {}
+                                }
+                                
+                                if (currentState !== null && currentState !== undefined) {
                                     const caseMap = {};
                                     switchStmt.cases.forEach(c => {
                                         if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
                                             const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
                                             let nextState = null;
                                             const cleanStmts =[];
+                                            
+                                            const resolveNextState = (rightNode) => {
+                                                if (t.isNumericLiteral(rightNode) || t.isStringLiteral(rightNode)) return rightNode.value;
+                                                try {
+                                                    let codePart = code.slice(rightNode.start, rightNode.end);
+                                                    return win.eval(codePart);
+                                                } catch(e) { return null; }
+                                            };
+
                                             for (const stmt of stmts) {
-                                                // 逶ｴ荳九・莉｣蜈･
+                                                // 直下の代入
                                                 if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) &&
                                                     t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
-                                                    if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) {
-                                                        nextState = stmt.expression.right.value;
-                                                        continue; // 莉｣蜈･蠑上・蜑企勁
+                                                    let val = resolveNextState(stmt.expression.right);
+                                                    if (val !== null && val !== undefined) {
+                                                        nextState = val;
+                                                        continue; // 代入式はもう不要なので削除
                                                     }
                                                 }
-                                                // 繝悶Ο繝・け蜀・・莉｣蜈･ (Example 4蟇ｾ遲・
+                                                // ブロック内代入 (Example 4対応)
                                                 if (t.isBlockStatement(stmt)) {
                                                     let innerNextState = null;
                                                     const cleanInner =[];
                                                     for (const inner of stmt.body) {
                                                         if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) &&
                                                             t.isIdentifier(inner.expression.left, { name: stateVarName })) {
-                                                            if (t.isNumericLiteral(inner.expression.right) || t.isStringLiteral(inner.expression.right)) {
-                                                                innerNextState = inner.expression.right.value;
+                                                            let val = resolveNextState(inner.expression.right);
+                                                            if (val !== null && val !== undefined) {
+                                                                innerNextState = val;
                                                                 continue;
                                                             }
                                                         }
@@ -1052,7 +1098,7 @@
                                     let curr = currentState;
                                     let visited = new Set();
                                     
-                                    while (curr !== null && caseMap[curr] && !visited.has(curr)) {
+                                    while (curr !== null && curr !== undefined && caseMap[curr] && !visited.has(curr)) {
                                         visited.add(curr);
                                         unflattened.push(...caseMap[curr].stmts);
                                         curr = caseMap[curr].nextState;
