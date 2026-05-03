@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -135,7 +135,7 @@
 </nav>
 
 <div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Packer縺ｮ隗｣髯､縲、ST譁・ｭ怜・繝・さ繝ｼ繝峨∝ｮ壽焚逡ｳ縺ｿ霎ｼ縺ｿ縲√ヵ繧ｩ繝ｼ繝槭ャ繝医ｒ閾ｪ蜍輔〒豺ｱ縺上∪縺ｧ蜿榊ｾｩ螳溯｡後＠縺ｾ縺・>
+    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Recursively executes Packer release, AST string decoding, Constant folding, and Formatting.">
         <i class="bi bi-magic me-1"></i> Deep Auto
     </button>
     <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack</button>
@@ -149,7 +149,7 @@
         <div class="window-header">
             <span><i class="bi bi-file-earmark-code me-2"></i>Input (Obfuscated)</span>
         </div>
-        <textarea class="editor" id="input-editor" spellcheck="false" placeholder="縺薙％縺ｫ髮｣隱ｭ蛹悶＆繧後◆JavaScript繧ｳ繝ｼ繝峨ｒ雋ｼ繧贋ｻ倥￠縺ｦ縺上□縺輔＞..."></textarea>
+        <textarea class="editor" id="input-editor" spellcheck="false" placeholder="Paste your obfuscated JavaScript code here..."></textarea>
     </div>
     
     <div class="window-panel">
@@ -157,7 +157,7 @@
             <span><i class="bi bi-file-earmark-check me-2"></i>Output (Deobfuscated)</span>
             <button class="btn btn-sm btn-custom py-0" id="btn-copy" title="Copy to Clipboard"><i class="bi bi-clipboard"></i></button>
         </div>
-        <textarea class="editor" id="output-editor" spellcheck="false" readonly placeholder="繝・さ繝ｼ繝峨・謨ｴ蠖｢縺輔ｌ縺溘さ繝ｼ繝峨′縺薙％縺ｫ陦ｨ遉ｺ縺輔ｌ縺ｾ縺・.."></textarea>
+        <textarea class="editor" id="output-editor" spellcheck="false" readonly placeholder="Decoded and formatted code will appear here..."></textarea>
     </div>
 </div>
 
@@ -213,7 +213,7 @@
                 indent_size: 4, space_in_empty_paren: true, preserve_newlines: true, max_preserve_newlines: 2, jslint_happy: true, brace_style: "collapse"
             });
         } catch (e) {
-            log("繝輔か繝ｼ繝槭ャ繝医お繝ｩ繝ｼ: " + e.message, "warning");
+            log("Format Error" + e.message, "warning");
             return code;
         }
     }
@@ -286,7 +286,7 @@
 
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
-            log("蜍慕噪繧｢繝ｳ繝代ャ繧ｫ繝ｼ (Eval/Function繝輔ャ繧ｯ) 繧帝幕蟋・..", "info");
+            log("Starting Dynamic Unpacker (Eval/Function hook)...", "info");
             
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
@@ -339,7 +339,7 @@
                 win.document.body.appendChild(script);
 
             } catch (err) {
-                log(`Sandbox螳溯｡後お繝ｩ繝ｼ: ${err.message}`, "warning");
+                log(`Sandbox Error: ${err.message}`, "warning");
             }
 
             setTimeout(() => {
@@ -347,7 +347,7 @@
                 if (payloads.length > 0) {
                     payloads.sort((a, b) => b.length - a.length);
                     const bestPayload = payloads[0];
-                    log(`繝代ャ繧ｫ繝ｼ繧定ｧ｣髯､縺励∪縺励◆ (${bestPayload.length} bytes)`, "success");
+                    log(`Packer removed (${bestPayload.length} bytes)`, "success");
                     resolve(bestPayload);
                 } else {
                     resolve(code);
@@ -362,7 +362,7 @@
         try {
             ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
         } catch(e) {
-            log("AST縺ｮ繝代・繧ｹ縺ｫ螟ｱ謨・ " + e.message, "error");
+            log("AST parsing failed:" + e.message, "error");
             return { code, changed: false };
         }
 
@@ -980,12 +980,12 @@
             });
             document.body.removeChild(iframe);
             if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST鄂ｮ謠・ 繝ｭ繧ｸ繝・け繝ｻ蛻ｶ蠕｡繝輔Ο繝ｼ隗｣髯､ ${replacedCount}邂・園, 螳壽焚逡ｳ縺ｿ霎ｼ縺ｿ ${foldedCount}邂・園`, "info");
+                log(`AST Replace: Logic/Control Flow unflattened, ${replacedCount}points, Constant folding ${foldedCount}points`, "info");
             }
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
             document.body.removeChild(iframe);
-            log("AST螟画鋤繧ｨ繝ｩ繝ｼ: " + e.message, "error");
+            log("AST transformation error: " + e.message, "error");
             return { code, changed: false };
         }
     }
