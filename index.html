@@ -327,23 +327,6 @@
                 const origFunction = win.Function;
                 const hookedFunction = function(...args) {
                     if (args.length > 0) checkAndPush(args[args.length - 1]);
-                    // Example 1 のような自己展開パッカーが最後まで実行されるよう、オリジナルを実行する
-                    try {
-                        return origFunction.apply(this, args);
-                    } catch(e) {
-                        return function() {};
-                    }
-                };
-
-                const origEval = win.eval;
-                win.eval = function(payload) {
-                    checkAndPush(payload);
-                    try { return origEval.apply(this, arguments); } catch(e){}
-                };
-
-                const origFunction = win.Function;
-                const hookedFunction = function(...args) {
-                    if (args.length > 0) checkAndPush(args[args.length - 1]);
                     // ペイロードを抽出した上で、悪意あるコードがそのまま実行されるのを防ぐためダミーを返す
                     return function() {};
                 };
