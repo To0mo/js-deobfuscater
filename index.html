@@ -435,6 +435,19 @@
         try {
             win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
             win.setTimeout = function(){}; win.setInterval = function(){};
+            
+            // Functionコンストラクタをフックして、アンチデバッグの動的生成を無効化
+            const origFunc = win.Function;
+            win.Function = function(...args) {
+                const body = args.length > 0 ? args[args.length - 1] : '';
+                if (typeof body === 'string' && (body.includes('debugger') || body.includes('while (true)'))) {
+                    return function() {};
+                }
+                return origFunc.apply(this, args);
+            };
+            win.Function.prototype = origFunc.prototype;
+            win.Function.prototype.constructor = win.Function;
+
             // Execute setup code in sandbox
             win.eval(setupCode);
         } catch (e) {
@@ -554,6 +567,44 @@
                     Program: {
                         enter(path) {
                             seedNoOpWrappers(path.node);
+                        },
+                        exit(path) {
+                            // Dead Code Elimination (不要になった関数や変数を再帰的に削除)
+                            let changed = true;
+                            while (changed) {
+                                changed = false;
+                                path.traverse({
+                                    "VariableDeclarator|FunctionDeclaration"(childPath) {
+                                        const id = childPath.node.id;
+                                        if (!id || !t.isIdentifier(id)) return;
+                                        const binding = childPath.scope.getBinding(id.name);
+                                        if (!binding) return;
+                                        
+                                        let isReferencedOutside = false;
+                                        binding.referencePaths.forEach(refPath => {
+                                            // 参照元が自分自身の内部ではない（＝外部から呼ばれている）かチェック
+                                            if (!refPath.findParent(p => p === childPath)) {
+                                                isReferencedOutside = true;
+                                            }
+                                        });
+                                        
+                                        if (!isReferencedOutside) {
+                                            if (childPath.isVariableDeclarator()) {
+                                                childPath.remove();
+                                                const declPath = childPath.parentPath;
+                                                // var a = 1; のように親が空になれば親ごと削除
+                                                if (declPath && declPath.isVariableDeclaration() && declPath.node.declarations.length === 0) {
+                                                    declPath.remove();
+                                                }
+                                            } else {
+                                                childPath.remove();
+                                            }
+                                            changed = true;
+                                            replacedCount++;
+                                        }
+                                    }
+                                });
+                            }
                         }
                     },
                     VariableDeclarator: {
@@ -719,6 +770,21 @@
                     },
                     
                     CallExpression(path) {
+                        // constructor("debugger") や constructor("while (true) {}") の生成を空関数に置換
+                        if (t.isMemberExpression(path.node.callee)) {
+                            const prop = path.node.callee.property;
+                            const isConstructor = (!path.node.callee.computed && t.isIdentifier(prop, {name: 'constructor'})) ||
+                                                  (path.node.callee.computed && t.isStringLiteral(prop, {value: 'constructor'}));
+                            if (isConstructor && path.node.arguments.length > 0 && t.isStringLiteral(path.node.arguments[0])) {
+                                const val = path.node.arguments[0].value;
+                                if (val.includes('debugger') || val.includes('while (true)')) {
+                                    path.replaceWith(t.functionExpression(null, [], t.blockStatement([])));
+                                    replacedCount++;
+                                    return;
+                                }
+                            }
+                        }
+
                         if (t.isIdentifier(path.node.callee) && noOpWrappers.has(path.node.callee.name)) {
                             const args = path.node.arguments.map((arg) => t.cloneNode(arg, true));
                             if (args.length === 0) {
@@ -815,8 +881,23 @@
                     },
 
                     ExpressionStatement(path) {
+                        // 配列シャッフル用IIFEの削除
+                        if (t.isCallExpression(path.node.expression) && t.isFunctionExpression(path.node.expression.callee)) {
+                            const args = path.node.expression.arguments;
+                            // 通常2つの引数 (配列を返す関数, 数値) を受け取る
+                            if (args.length >= 2 && t.isIdentifier(args[0]) && t.isNumericLiteral(args[1])) {
+                                const bodyStmts = path.node.expression.callee.body.body;
+                                const hasWhile = bodyStmts.some(stmt => t.isWhileStatement(stmt));
+                                if (hasWhile) {
+                                    path.remove();
+                                    replacedCount++;
+                                    return;
+                                }
+                            }
+                        }
+
                         if (!t.isSequenceExpression(path.node.expression)) return;
-                        const exprs = path.node.expression.expressions || [];
+                        const exprs = path.node.expression.expressions ||[];
                         if (exprs.length <= 1) return;
                         path.replaceWithMultiple(exprs.map((expr) => t.expressionStatement(expr)));
                         replacedCount++;
