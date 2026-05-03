@@ -301,7 +301,7 @@
 
                 // 繝壹う繝ｭ繝ｼ繝峨′譛牙柑縺ｪJS縺区､懆ｨｼ
                 function checkAndPush(payload) {
-                    if (typeof payload === 'string' && payload.length > 50) {
+                    if (typeof payload === 'string' && payload.length > 0) {
                         try {
                             Babel.transform(payload, { ast: true, code: false }); // 讒区枚繝√ぉ繝・け
                             payloads.push(payload);
@@ -318,11 +318,21 @@
                 const origFunction = win.Function;
                 const hookedFunction = function(...args) {
                     if (args.length > 0) checkAndPush(args[args.length - 1]);
-                    try { return origFunction.apply(this, args); } catch(e){}
+                    // ペイロードを抽出した上で、悪意あるコードがそのまま実行されるのを防ぐためダミーを返す
+                    return function() {};
                 };
                 win.Function = hookedFunction;
                 win.Function.prototype = origFunction.prototype;
-                win.Function.prototype.constructor = hookedFunction;
+                
+                // あらゆるビルトインオブジェクトの prototype.constructor 経由の実行をフック
+                Object.getOwnPropertyNames(win).forEach(key => {
+                    try {
+                        if (win[key] && win[key].prototype && win[key].prototype.constructor === origFunction) {
+                            Object.defineProperty(win[key].prototype, 'constructor', { value: hookedFunction, configurable: true });
+                        }
+                    } catch(e){}
+                });
+                Object.defineProperty(win.Function.prototype, 'constructor', { value: hookedFunction, configurable: true });
                 
                 const origWrite = win.document.write;
                 win.document.write = function(payload) {
@@ -330,9 +340,15 @@
                     return origWrite.apply(this, arguments);
                 };
 
-                // Timer safety
-                win.setTimeout = function(cb){ if(typeof cb === 'function') cb(); return 0; };
-                win.setInterval = function(){ return 0; };
+                // Timer safety & 文字列実行パターンの傍受
+                win.setTimeout = function(cb, ...args) { 
+                    if (typeof cb === 'string') checkAndPush(cb); 
+                    return 0; 
+                };
+                win.setInterval = function(cb, ...args) { 
+                    if (typeof cb === 'string') checkAndPush(cb); 
+                    return 0; 
+                };
 
                 const script = win.document.createElement('script');
                 script.textContent = code; // try-catch縺ｧ蝗ｲ縺ｾ縺ｪ縺・閾ｪ蟾ｱ讀懆ｨｼ繝上ャ繧ｷ繝･縺ｮ遐ｴ螢翫ｒ髦ｲ縺・
@@ -461,7 +477,7 @@
             const proxyDict = {};
             const constArrayDict = {};
             const noOpWrappers = new Set();
-            const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console', 'parseInt', 'String', 'decodeURIComponent', 'escape', 'atob', 'btoa']);
+            const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console']);
 
             const isLiteralLike = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
 
