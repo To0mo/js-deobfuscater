@@ -9,270 +9,417 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts (Fira Code) -->
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Google Fonts (Fira Code & Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css">
     
     <style>
-        /* 繝｢繝舌う繝ｫ繧ｭ繝ｼ繝懊・繝牙ｯｾ遲厄ｼ單vh縺ｨfixed繧貞茜逕ｨ縺怜・菴薙・繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繝ｻ隕句・繧後ｒ辟｡蜉ｹ蛹・*/
+        /* お気に入りの色合いを維持しつつ、余白・丸みを削ったコンパクトなスタイル */
         html, body {
             margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100dvh; /* iOS/Android蟇ｾ蠢懊・蜍慕噪繝薙Η繝ｼ繝昴・繝磯ｫ・*/
-            position: fixed; /* 繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繝舌え繝ｳ繧ｹ繧帝亟豁｢ */
-            top: 0;
-            left: 0;
-            overflow: hidden !important; 
-            background-color: #0d1117; 
-            color: #c9d1d9; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 12px;
+            height: 100vh;
+            background-color: #17181a; 
+            color: #d4d4d4; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* ダッシュボード型（各パネル内でスクロール） */
+            box-sizing: border-box;
+        }
+        * { box-sizing: border-box; }
+        
+        header { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 12px; 
+            border-bottom: 1px solid #2d2f33; 
+            padding-bottom: 10px; 
+            flex-shrink: 0; 
+        }
+        h1 { 
+            margin: 0; 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #e4e4e4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .navbar { background-color: #161b22 !important; border-bottom: 1px solid #30363d; flex-shrink: 0; }
-        .toolbar { padding: 10px 15px; background-color: #0d1117; display: flex; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
+        .toolbar { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center;
+            margin-left: auto;
+        }
+
+        .btn-custom { background-color: #2b2d31; color: #dbdee1; border: 1px solid #3d4047; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-custom:hover { background-color: #383a40; color: #ffffff; border-color: #5c6168; }
+        
+        .btn-success-custom { background-color: #238636; color: #fff; border: 1px solid #2ea043; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-success-custom:hover { background-color: #2ea043; }
+        
+        .btn-danger-custom { background-color: transparent; color: #f85149; border: 1px solid #f85149; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-danger-custom:hover { background-color: #f85149; color: #fff; }
+
+        .dropdown-menu {
+            border-radius: 6px;
+            padding: 6px 0;
+            background-color: #25262a;
+            border: 1px solid #3d4047;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            font-size: 13px;
+        }
+        .dropdown-item { padding: 8px 16px; color: #d4d4d4; transition: background 0.2s; }
+        .dropdown-item:hover { background-color: #313338; color: #ffffff; }
         
         .main-container { 
             display: flex; 
-            flex-direction: column; /* 繝｢繝舌う繝ｫ縺ｧ縺ｯ邵ｦ荳ｦ縺ｳ */
-            gap: 15px; 
-            padding: 0 15px 15px 15px; 
+            gap: 12px; 
             flex: 1; 
-            min-height: 0;
+            min-height: 0; 
+            flex-direction: row; 
         }
         
-        @media (min-width: 768px) {
-            .main-container {
-                flex-direction: row; /* PC縺ｧ縺ｯ讓ｪ荳ｦ縺ｳ */
-                padding: 0 20px 20px 20px;
-                gap: 20px;
-            }
-            .toolbar { padding: 12px 20px; gap: 10px; }
-        }
-        
-        /* 繧ｦ繧｣繝ｳ繝峨え鬚ｨ繝代ロ繝ｫ */
+        /* コンパクトで四角いウィンドウパネル */
         .window-panel { 
             flex: 1; 
             display: flex; 
             flex-direction: column; 
-            background-color: #161b22; 
-            border: 1px solid #30363d; 
-            border-radius: 8px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            background-color: #1e1f22; 
+            border: 1px solid #2d2f33; 
+            border-radius: 6px; 
             overflow: hidden;
-            min-height: 0; /* 蟄占ｦ∫ｴ縺ｮ繧ｪ繝ｼ繝舌・繝輔Ο繝ｼ繧定ｨｱ蜿ｯ */
+            min-height: 0; 
         }
+        
         .window-header { 
-            padding: 8px 15px; 
-            background-color: #21262d; 
-            font-size: 0.9em; 
+            padding: 6px 12px; 
+            background-color: #25262a; 
+            font-size: 12px; 
             font-weight: 600; 
-            border-bottom: 1px solid #30363d; 
-            color: #e6edf3; 
+            border-bottom: 1px solid #2d2f33; 
+            color: #e4e4e4; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             flex-shrink: 0;
         }
         
-        /* 繧ｨ繝・ぅ繧ｿ驛ｨ蛻・*/
-        .editor { 
-            flex: 1; 
-            background-color: #0d1117; 
-            color: #e6edf3; 
-            border: none; 
-            padding: 15px; 
-            font-family: 'Fira Code', monospace; 
-            font-size: 13px; 
-            line-height: 1.5;
-            outline: none; 
-            resize: none; 
-            white-space: pre-wrap; 
-            word-wrap: break-word; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* iOS縺ｮ繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繧呈ｻ代ｉ縺九↓ */
+        .editor-container {
+            flex: 1;
+            position: relative;
         }
         
-        /* 繝ｭ繧ｰ繧ｦ繧｣繝ｳ繝峨え */
-        .log-container {
-            padding: 0 15px 15px 15px;
-            height: 25dvh; /* 蜈ｨ菴薙・25%縺ｮ鬮倥＆ */
-            display: flex;
-            flex-shrink: 0;
+        /* CodeMirror */
+        .CodeMirror {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            height: 100% !important;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.5;
         }
-        @media (min-width: 768px) {
-            .log-container { padding: 0 20px 20px 20px; height: 280px; }
+        .cm-s-darcula.CodeMirror { background-color: #1e1f22; color: #e4e4e4; }
+        .cm-s-darcula .CodeMirror-gutters { background-color: #1e1f22; border-right: 1px solid #2d2f33; }
+        .cm-s-darcula .CodeMirror-linenumber { color: #6b6f75; padding-left: 6px; }
+        .cm-s-darcula .CodeMirror-cursor { border-left: 2px solid #e4e4e4; }
+        .CodeMirror-selected { background: #32445a !important; }
+        .CodeMirror-line::selection, .CodeMirror-line > span::selection { background: #32445a !important; }
+        .CodeMirror-placeholder { color: #5c6168 !important; }
+        
+        /* ログエリア */
+        .log-section { 
+            height: 150px; 
+            flex-shrink: 0; 
+            background-color: #1e1f22; 
+            border: 1px solid #2d2f33; 
+            border-radius: 6px; 
+            margin-top: 12px; 
+            display: flex; 
+            flex-direction: column; 
+        }
+        .log-header { 
+            padding: 6px 12px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            color: #b9bbbe; 
+            border-bottom: 1px solid #2d2f33; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-shrink: 0; 
         }
         .log-content { 
             flex: 1; 
-            padding: 12px 15px; 
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            padding: 8px 12px; 
+            overflow-y: auto; 
             font-family: 'Fira Code', monospace; 
             font-size: 12px; 
-            color: #8b949e; 
-            background-color: #0d1117;
+            line-height: 1.5;
+            margin: 0; 
+            color: #b9bbbe; 
         }
-        .log-entry { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px dashed #21262d; word-break: break-all; }
-        .log-entry.info { color: #58a6ff; }
-        .log-entry.success { color: #3fb950; }
-        .log-entry.error { color: #f85149; }
-        .log-entry.warning { color: #d29922; }
         
-        .btn-custom { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; }
-        .btn-custom:hover { background-color: #30363d; color: #fff; border-color: #8b949e; }
+        .log-msg { border-bottom: 1px dashed rgba(45, 47, 51, 0.8); padding: 4px 0; word-break: break-all; }
+        .log-msg.info { color: #58a6ff; } 
+        .log-msg.success { color: #3fb950; }
+        .log-msg.error { color: #f85149; } 
+        .log-msg.warning { color: #d29922; } 
+        
+        .icon-btn { 
+            background: transparent; color: #b9bbbe; border: none; padding: 4px 8px; cursor: pointer; 
+            border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 12px; gap: 4px;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); color: #e4e4e4; }
+
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3d4047; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5c6168; }
+
+        /* スマホ時のレスポンシブ処理 */
+        @media (max-width: 768px) {
+            body { height: auto; display: block; overflow-y: auto; }
+            header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .toolbar { margin-left: 0; width: 100%; flex-wrap: wrap; }
+            .main-container { flex-direction: column; display: flex; height: auto; }
+            .window-panel { min-height: 300px; flex: none; }
+            .log-section { flex-shrink: 0; height: 200px; margin-bottom: 20px; }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h5" style="font-weight: 600;">
-            <i class="bi bi-shield-check me-2" style="color: #3fb950;"></i>Universal JS Deobfuscator
-        </span>
+<header>
+    <h1><i class="bi bi-shield-check" style="color: #3fb950; font-size: 20px;"></i> Universal JS Deobfuscator</h1>
+    <div class="toolbar">
+        <div class="dropdown">
+            <button class="btn-success-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-tools"></i> Actions
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark shadow-lg">
+                <li><a class="dropdown-item fw-bold" href="#" id="btn-auto"><i class="bi bi-magic text-success me-2"></i> Deobfuscate</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" id="btn-dynamic"><i class="bi bi-play-circle text-info me-2"></i> Dynamic Unpack</a></li>
+                <li><a class="dropdown-item" href="#" id="btn-strings"><i class="bi bi-fonts text-warning me-2"></i> Decode AST</a></li>
+                <li><a class="dropdown-item" href="#" id="btn-antiminify"><i class="bi bi-person-lines-fill me-2" style="color: #b392f0;"></i> Anti-Minify</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#" id="btn-format"><i class="bi bi-code-slash text-secondary me-2"></i> Beautify</a></li>
+            </ul>
+        </div>
+        <button class="btn-danger-custom" id="btn-clear" title="Clear All"><i class="bi bi-trash"></i> Clear</button>
     </div>
-</nav>
-
-<div class="toolbar">
-    <button class="btn btn-success btn-sm fw-bold" id="btn-auto" title="Recursively executes Packer release, AST string decoding, Constant folding, and Formatting.">
-        <i class="bi bi-magic me-1"></i> Deep Auto
-    </button>
-    <button class="btn btn-custom btn-sm" id="btn-dynamic"><i class="bi bi-play-circle me-1"></i> Dynamic Unpack</button>
-    <button class="btn btn-custom btn-sm" id="btn-strings"><i class="bi bi-fonts me-1"></i> Decode AST</button>
-    <button class="btn btn-custom btn-sm" id="btn-format"><i class="bi bi-code-slash me-1"></i> Beautify</button>
-    <button class="btn btn-outline-danger btn-sm ms-auto" id="btn-clear"><i class="bi bi-trash"></i></button>
-</div>
+</header>
 
 <div class="main-container">
     <div class="window-panel">
         <div class="window-header">
-            <span><i class="bi bi-file-earmark-code me-2"></i>Input (Obfuscated)</span>
+            <span><i class="bi bi-file-earmark-code me-2"></i>Input Source</span>
         </div>
-        <textarea class="editor" id="input-editor" spellcheck="false" placeholder="Paste your obfuscated JavaScript code here..."></textarea>
+        <div class="editor-container">
+            <textarea id="input-editor"></textarea>
+        </div>
     </div>
     
     <div class="window-panel">
         <div class="window-header">
-            <span><i class="bi bi-file-earmark-check me-2"></i>Output (Deobfuscated)</span>
-            <button class="btn btn-sm btn-custom py-0" id="btn-copy" title="Copy to Clipboard"><i class="bi bi-clipboard"></i></button>
+            <span><i class="bi bi-file-earmark-check me-2"></i>Deobfuscated Output</span>
+            <button class="icon-btn" id="btn-copy" title="Copy Code"><i class="bi bi-clipboard"></i> Copy</button>
         </div>
-        <textarea class="editor" id="output-editor" spellcheck="false" readonly placeholder="Decoded and formatted code will appear here..."></textarea>
+        <div class="editor-container">
+            <textarea id="output-editor"></textarea>
+        </div>
     </div>
 </div>
 
-<div class="log-container">
-    <div class="window-panel">
-        <div class="window-header">
-            <span><i class="bi bi-terminal me-2"></i>Execution Log</span>
-            <button class="btn btn-sm btn-custom py-0" id="btn-clear-log" title="Clear Logs"><i class="bi bi-eraser"></i></button>
-        </div>
-        <div class="log-content" id="log-content"></div>
+<div class="log-section">
+    <div class="log-header">
+        <span><i class="bi bi-terminal me-2"></i>Execution Terminal</span>
+        <button class="icon-btn" id="btn-clear-log"><i class="bi bi-trash"></i> Clear</button>
     </div>
+    <div class="log-content" id="log-content"></div>
 </div>
 
-<!-- Babel Standalone (AST Parsing) -->
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Babel Standalone -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <!-- js-beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
 
+<!-- CodeMirror Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/display/placeholder.min.js"></script>
+
 <script>
-    const inputEditor = document.getElementById('input-editor');
-    const outputEditor = document.getElementById('output-editor');
+    // CodeMirror Initialization
+    const cmInput = CodeMirror.fromTextArea(document.getElementById('input-editor'), {
+        mode: "javascript",
+        theme: "darcula",
+        lineNumbers: true,
+        lineWrapping: true,
+        matchBrackets: true,
+        indentUnit: 4,
+        placeholder: "// Paste your obfuscated JavaScript code here..."
+    });
+    
+    const cmOutput = CodeMirror.fromTextArea(document.getElementById('output-editor'), {
+        mode: "javascript",
+        theme: "darcula",
+        lineNumbers: true,
+        lineWrapping: true,
+        matchBrackets: true,
+        readOnly: false,
+        indentUnit: 4,
+        placeholder: "// Decoded output will appear here..."
+    });
+
     const logContent = document.getElementById('log-content');
 
     function log(message, type = 'info') {
         const entry = document.createElement('div');
-        entry.className = `log-entry ${type}`;
+        entry.className = `log-msg ${type}`;
         const timestamp = new Date().toLocaleTimeString();
         let icon = 'bi-info-circle';
         if (type === 'success') icon = 'bi-check-circle';
         if (type === 'error') icon = 'bi-x-circle';
         if (type === 'warning') icon = 'bi-exclamation-triangle';
         
-        entry.innerHTML = `<span style="color: #484f58; font-size: 0.9em;">[${timestamp}]</span> <i class="bi ${icon} me-1"></i> ${message}`;
+        entry.innerHTML = `<span style="color: #6b6f75; margin-right: 6px;">[${timestamp}]</span><i class="bi ${icon} me-1"></i> ${message}`;
         logContent.appendChild(entry);
         logContent.scrollTop = logContent.scrollHeight;
     }
 
     document.getElementById('btn-clear').addEventListener('click', () => {
-        inputEditor.value = ''; outputEditor.value = ''; logContent.innerHTML = '';
-        log('Editor and logs cleared.', 'info');
+        cmInput.setValue(''); 
+        cmOutput.setValue(''); 
+        logContent.innerHTML = '';
+        log('Workspace cleared.', 'info');
     });
     document.getElementById('btn-clear-log').addEventListener('click', () => logContent.innerHTML = '');
+    
     document.getElementById('btn-copy').addEventListener('click', () => {
-        outputEditor.select(); document.execCommand('copy');
-        log('Output copied to clipboard.', 'success');
+        navigator.clipboard.writeText(cmOutput.getValue()).then(() => {
+            const btn = document.getElementById('btn-copy');
+            btn.innerHTML = '<i class="bi bi-check2" style="color:var(--success);"></i> Copied';
+            setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy'; }, 1500);
+            log('Output copied to clipboard.', 'success');
+        }).catch(err => {
+            log('Failed to copy: ' + err, 'error');
+        });
     });
 
-    // 1. js-beautify
+    // --- Format ---
     function formatCode(code) {
         if (typeof js_beautify !== 'function') return code;
         try {
             return js_beautify(code, {
-                indent_size: 4, space_in_empty_paren: true, preserve_newlines: true, max_preserve_newlines: 2, jslint_happy: true, brace_style: "collapse"
+                indent_size: 4, space_in_empty_paren: false, preserve_newlines: true, max_preserve_newlines: 2, jslint_happy: true, brace_style: "collapse,preserve-inline", space_before_conditional: true
             });
         } catch (e) {
-            log("Format Error" + e.message, "warning");
+            log("Format Error: " + e.message, "warning");
             return code;
         }
     }
-    document.getElementById('btn-format').addEventListener('click', () => {
-        const code = outputEditor.value || inputEditor.value;
+    
+    document.getElementById('btn-format').addEventListener('click', (e) => {
+        e.preventDefault();
+        const code = cmOutput.getValue() || cmInput.getValue();
         if (!code) return;
-        outputEditor.value = formatCode(code);
+        cmOutput.setValue(formatCode(code));
         log("Code formatted.", "success");
     });
 
-    // 2. 蜍慕噪繧｢繝ｳ繝代ャ繧ｫ繝ｼ (蝣・欧蛹也沿)
-    function canParseJavaScript(code) {
+    // --- Anti-Minify ---
+    function antiMinify(code) {
         try {
-            Babel.transform(code, {
-                ast: true,
-                code: false,
-                parserOpts: {
-                    allowReturnOutsideFunction: true,
-                    allowAwaitOutsideFunction: true
-                }
+            const ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
+            const antiMinifyPlugin = function({ types: t }) {
+                return {
+                    visitor: {
+                        Scopable(path) {
+                            const bindings = path.scope.bindings;
+                            for (const name in bindings) {
+                                if (name.length <= 2 && !['e', '_', '$'].includes(name) && /^[a-zA-Z]+$/.test(name)) {
+                                    const binding = bindings[name];
+                                    let prefix = "_var";
+                                    if (binding.kind === "param") prefix = "_arg";
+                                    else if (binding.path.isFunctionDeclaration() || binding.path.isFunctionExpression()) prefix = "_func";
+                                    else if (binding.path.isClassDeclaration()) prefix = "_class";
+                                    else if (binding.kind === "const") prefix = "_const";
+                                    const newName = path.scope.generateUid(prefix);
+                                    path.scope.rename(name, newName);
+                                }
+                            }
+                        },
+                        UnaryExpression(path) {
+                            if (['!', '+', '-', '~'].includes(path.node.operator)) {
+                                const arg = path.node.argument;
+                                if (t.isCallExpression(arg) && (t.isFunctionExpression(arg.callee) || t.isArrowFunctionExpression(arg.callee))) {
+                                    if (path.parentPath.isExpressionStatement() || path.parentPath.isSequenceExpression()) {
+                                        path.replaceWith(arg);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            };
+            const transformed = Babel.transformFromAst(ast, code, {
+                generatorOpts: { retainLines: false, jsescOption: { minimal: true } },
+                plugins:[antiMinifyPlugin]
             });
-            return true;
-        } catch (e) {
-            return false;
+            return transformed.code;
+        } catch(e) {
+            log("Anti-Minify Error: " + e.message, "warning");
+            return code;
         }
+    }
+
+    document.getElementById('btn-antiminify').addEventListener('click', (e) => {
+        e.preventDefault();
+        const code = cmOutput.getValue() || cmInput.getValue();
+        if (!code) return;
+        cmOutput.setValue(formatCode(antiMinify(code)));
+        log("Anti-Minify applied.", "success");
+    });
+
+    // --- Snippet Parser ---
+    function canParseJavaScript(code) {
+        try { Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true } }); return true; } 
+        catch (e) { return false; }
     }
 
     function splitInputIntoSnippets(rawCode) {
         const normalized = String(rawCode || "").replace(/^\uFEFF/, "").trim();
         if (!normalized) return [];
-        if (canParseJavaScript(normalized)) return [{ title: "", code: normalized }];
-
+        if (canParseJavaScript(normalized)) return[{ title: "", code: normalized }];
         const lines = normalized.split(/\r?\n/);
-        const snippets = [];
-        let currentTitle = "";
-        let bucket = [];
-
+        const snippets =[];
+        let currentTitle = ""; let bucket =[];
         const flushBucket = () => {
-            const chunk = bucket.join("\n").trim();
-            bucket = [];
+            const chunk = bucket.join("\n").trim(); bucket =[];
             if (!chunk) return;
             if (canParseJavaScript(chunk)) snippets.push({ title: currentTitle, code: chunk });
         };
-
         lines.forEach((line) => {
             const marker = line.match(/^\s*(?:\/\/\s*)?Example\s+(\d+)\s*:?\s*$/i);
-            if (marker) {
-                flushBucket();
-                currentTitle = `Example ${marker[1]}`;
-                return;
-            }
+            if (marker) { flushBucket(); currentTitle = `Example ${marker[1]}`; return; }
             bucket.push(line);
         });
         flushBucket();
-
         if (snippets.length > 0) return snippets;
-
         const markerRemoved = normalized.replace(/^\s*(?:\/\/\s*)?Example\s+\d+\s*:?\s*$/gim, "").trim();
-        if (markerRemoved && canParseJavaScript(markerRemoved)) return [{ title: "", code: markerRemoved }];
+        if (markerRemoved && canParseJavaScript(markerRemoved)) return[{ title: "", code: markerRemoved }];
         return [{ title: "", code: normalized }];
     }
 
@@ -284,127 +431,67 @@
         }).join("\n\n");
     }
 
+    // --- Dynamic Unpack ---
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
-            log("Starting Dynamic Unpacker (Eval/Function hook)...", "info");
-            
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
-            
             let payloads =[];
-
             try {
                 const win = iframe.contentWindow;
                 win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
-                win.onerror = function() { return true; }; // 繧ｨ繝ｩ繝ｼ繧呈椛豁｢
-
-                // 繝壹う繝ｭ繝ｼ繝峨′譛牙柑縺ｪJS縺区､懆ｨｼ
-                // ペイロードが有効なJSか検証
+                win.onerror = () => true; 
                 function checkAndPush(payload) {
-                    if (typeof payload === 'string' && payload.length > 0) {
-                        try {
-                            Babel.transform(payload, { ast: true, code: false }); // 構文チェック
-                            payloads.push(payload);
-                        } catch(e) {
-                            // パースエラーでも式としてパース可能か、あるいは十分な長さがあれば保存
-                            try {
-                                Babel.transform(`(${payload})`, { ast: true, code: false });
-                                payloads.push(payload);
-                            } catch(e2) {
-                                if (payload.length > 50) payloads.push(payload);
-                            }
-                        }
+                    if (typeof payload === 'string' && payload.trim().length > 0) {
+                        try { Babel.transform(payload, { ast: true, code: false }); payloads.push(payload); } catch(e) {}
                     }
                 }
-
-                const origEval = win.eval;
-                win.eval = function(payload) {
-                    checkAndPush(payload);
-                    try { return origEval.apply(this, arguments); } catch(e){}
-                };
-
+                const origEval = win.eval; win.eval = function(payload) { checkAndPush(payload); try { return origEval.apply(this, arguments); } catch(e){} };
                 const origFunction = win.Function;
-                const hookedFunction = function(...args) {
-                    if (args.length > 0) checkAndPush(args[args.length - 1]);
-                    // ペイロードを抽出した上で、悪意あるコードがそのまま実行されるのを防ぐためダミーを返す
-                    return function() {};
-                };
-                win.Function = hookedFunction;
-                win.Function.prototype = origFunction.prototype;
-                
-                // あらゆるビルトインオブジェクトの prototype.constructor 経由の実行をフック
-                Object.getOwnPropertyNames(win).forEach(key => {
-                    try {
-                        if (win[key] && win[key].prototype && win[key].prototype.constructor === origFunction) {
-                            Object.defineProperty(win[key].prototype, 'constructor', { value: hookedFunction, configurable: true });
-                        }
-                    } catch(e){}
-                });
-                Object.defineProperty(win.Function.prototype, 'constructor', { value: hookedFunction, configurable: true });
-                
-                const origWrite = win.document.write;
-                win.document.write = function(payload) {
-                    checkAndPush(payload);
-                    return origWrite.apply(this, arguments);
-                };
-
-                // Timer safety & 文字列実行パターンの傍受
-                win.setTimeout = function(cb, ...args) { 
-                    if (typeof cb === 'string') checkAndPush(cb); 
-                    return 0; 
-                };
-                win.setInterval = function(cb, ...args) { 
-                    if (typeof cb === 'string') checkAndPush(cb); 
-                    return 0; 
-                };
-
-                const script = win.document.createElement('script');
-                script.textContent = code; // try-catch縺ｧ蝗ｲ縺ｾ縺ｪ縺・閾ｪ蟾ｱ讀懆ｨｼ繝上ャ繧ｷ繝･縺ｮ遐ｴ螢翫ｒ髦ｲ縺・
-                win.document.body.appendChild(script);
-
-            } catch (err) {
-                log(`Sandbox Error: ${err.message}`, "warning");
-            }
-
+                const hookedFunction = function(...args) { if (args.length > 0) checkAndPush(args[args.length - 1]); try { return origFunction.apply(this, args); } catch(e){} };
+                win.Function = hookedFunction; win.Function.prototype = origFunction.prototype; win.Function.prototype.constructor = hookedFunction;
+                const origWrite = win.document.write; win.document.write = function(payload) { checkAndPush(payload); return origWrite.apply(this, arguments); };
+                win.setTimeout = (cb) => { if(typeof cb === 'function') cb(); return 0; }; win.setInterval = () => 0;
+                const script = win.document.createElement('script'); script.textContent = code; win.document.body.appendChild(script);
+            } catch (err) { log(`Sandbox execution error: ${err.message}`, "warning"); }
             setTimeout(() => {
                 document.body.removeChild(iframe);
                 if (payloads.length > 0) {
                     payloads.sort((a, b) => b.length - a.length);
-                    const bestPayload = payloads[0];
-                    log(`Packer removed (${bestPayload.length} bytes)`, "success");
-                    resolve(bestPayload);
-                } else {
-                    resolve(code);
-                }
+                    log(`Packer removed (${payloads[0].length} bytes)`, "success");
+                    resolve(payloads[0]);
+                } else resolve(code);
             }, 250);
         });
     }
 
-    // 3. 蠑ｷ蛹也沿 AST繝吶・繧ｹ縺ｮ繝・さ繝ｼ繝繝ｼ・・宛蠕｡繝輔Ο繝ｼ蟷ｳ蝮ｦ蛹冶ｧ｣髯､
+    document.getElementById('btn-dynamic').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const snippets = splitInputIntoSnippets(cmInput.getValue());
+        if (!snippets.length) return;
+        const results =[];
+        for (const snippet of snippets) {
+            log(`Dynamic Unpack: Running sandbox...`, "info");
+            const unpacked = await dynamicUnpack(snippet.code);
+            results.push({ title: snippet.title, code: formatCode(unpacked) });
+        }
+        cmOutput.setValue(buildMultiSnippetOutput(results));
+    });
+
+    // --- AST Decode Engine (Full Logic Restored) ---
     function decodeStringsAST(code) {
         let ast;
-        try {
-            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-        } catch(e) {
-            log("AST parsing failed:" + e.message, "error");
-            return { code, changed: false };
-        }
+        try { ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; } 
+        catch(e) { log("AST parsing failed: " + e.message, "error"); return { code, changed: false }; }
 
-        // ==========================================
-        // AST繧剃ｽｿ縺｣縺ｦ螳牙・縺ｪ繧ｻ繝・ヨ繧｢繝・・繧ｳ繝ｼ繝峨ｒ謚ｽ蜃ｺ
-        // ==========================================
         let setupNodes =[];
         ast.program.body.forEach(node => {
             const nodeLength = node.end - node.start;
-            // 譛ｬ邱ｨ縺ｮ蟾ｨ螟ｧ縺ｪ繝弱・繝峨・髯､螟悶☆繧・(Obfuscator.io縺ｮ蛻晄悄蛹悶・繝・さ繝ｼ繝縺ｮ縺ｿ繧呈歓蜃ｺ)
             if (code.length > 200000 && nodeLength > code.length * 0.92) return;
-            if (node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration' || node.type === 'ExpressionStatement') {
-                setupNodes.push(node);
-            }
+            if (node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration' || node.type === 'ExpressionStatement') setupNodes.push(node);
         });
 
-        // 謚ｽ蜃ｺ縺励◆繧ｳ繝ｼ繝峨↓縲、ST繧剃ｽｿ縺｣縺ｦ辟｡髯舌Ν繝ｼ繝鈴亟豁｢縺ｮ繧ｫ繧ｦ繝ｳ繧ｿ繧貞ｼｷ蛻ｶ豕ｨ蜈･縺吶ｋ
         let setupCode = "";
         const loopLimitPlugin = function({ types: t }) {
             return {
@@ -412,142 +499,39 @@
                     "WhileStatement|ForStatement|DoWhileStatement"(path) {
                         const cnt = path.scope.generateUidIdentifier("loop_cnt");
                         path.insertBefore(t.variableDeclaration("let",[t.variableDeclarator(cnt, t.numericLiteral(0))]));
-                        const limitCheck = t.ifStatement(
-                            t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(100000)),
-                            t.throwStatement(t.newExpression(t.identifier("Error"), [t.stringLiteral("Infinite loop detected")]))
-                        );
-                        if (t.isBlockStatement(path.node.body)) {
-                            path.node.body.body.unshift(limitCheck);
-                        } else {
-                            path.node.body = t.blockStatement([limitCheck, path.node.body]);
-                        }
+                        const limitCheck = t.ifStatement(t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(100000)), t.throwStatement(t.newExpression(t.identifier("Error"), [t.stringLiteral("Infinite loop")])));
+                        if (t.isBlockStatement(path.node.body)) path.node.body.body.unshift(limitCheck);
+                        else path.node.body = t.blockStatement([limitCheck, path.node.body]);
                     }
                 }
             };
         };
 
         if (setupNodes.length > 0) {
-            try {
-                setupCode = Babel.transformFromAst(Babel.types.program(setupNodes), code, {ast: false, code: true}).code || "";
-            } catch (e) {
+            try { setupCode = Babel.transformFromAst(Babel.types.program(setupNodes), code, {ast: false, code: true}).code || ""; } catch (e) {
                 try {
-                    const chunks = setupNodes
-                        .filter((n) => Number.isInteger(n.start) && Number.isInteger(n.end) && n.end > n.start)
-                        .map((n) => code.slice(n.start, n.end));
+                    const chunks = setupNodes.filter((n) => Number.isInteger(n.start) && Number.isInteger(n.end) && n.end > n.start).map((n) => code.slice(n.start, n.end));
                     setupCode = chunks.join("\n");
                 } catch (e2) {}
             }
-
-            if (setupCode.trim()) {
-                try {
-                    setupCode = Babel.transform(setupCode, {
-                        presets: ['env'], // ES6の変数をvarに変換してSandbox上のグローバルにバインド
-                        plugins: [loopLimitPlugin],
-                        parserOpts: { allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true }
-                    }).code;
-                } catch (e) {
-                    // setup guard only; keep unguarded setupCode
-                }
-            } else {
-                // keep going without setup code
-            }
+            if (setupCode.trim()) { try { setupCode = Babel.transform(setupCode, { plugins: [loopLimitPlugin], parserOpts: { allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true } }).code; } catch (e) { } }
         }
 
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
+        const iframe = document.createElement('iframe'); iframe.style.display = 'none'; document.body.appendChild(iframe);
         const win = iframe.contentWindow;
+        try { win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} }; win.setTimeout = function(){}; win.setInterval = function(){}; win.eval(setupCode); } catch (e) { }
 
-        try {
-            win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{} };
-            win.setTimeout = function(){}; win.setInterval = function(){};
-            
-            // Functionコンストラクタをフックして、アンチデバッグの動的生成を無効化
-            const origFunc = win.Function;
-            win.Function = function(...args) {
-                const body = args.length > 0 ? args[args.length - 1] : '';
-                if (typeof body === 'string' && (body.includes('debugger') || body.includes('while (true)'))) {
-                    return function() {};
-                }
-                return origFunc.apply(this, args);
-            };
-            win.Function.prototype = origFunc.prototype;
-            win.Function.prototype.constructor = win.Function;
-
-            // Execute setup code in sandbox
-            win.eval(setupCode);
-        } catch (e) {
-            // 辟｡髯舌Ν繝ｼ繝玲凾縺ｯ縺薙％縺ｧError縺荊hrow縺輔ｌ繧九◆繧∫┌隕悶＠縺ｦ邯夊｡悟庄閭ｽ
-        }
-
-        let replacedCount = 0;
-        let foldedCount = 0;
+        let replacedCount = 0; let foldedCount = 0;
 
         const deobfuscatePlugin = function({ types: t }) {
-            const proxyDict = {};
-            const constArrayDict = {};
-            const noOpWrappers = new Set();
+            const proxyDict = {}; const constArrayDict = {}; const noOpWrappers = new Set();
             const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console']);
-
-            const isLiteralLike = (arg) => {
-                if (t.isLiteral(arg)) return true;
-                if (t.isUnaryExpression(arg) && t.isLiteral(arg.argument)) return true;
-                // ![] や !![] への対応
-                if (t.isUnaryExpression(arg, {operator: '!'}) && t.isArrayExpression(arg.argument) && arg.argument.elements.length === 0) return true;
-                if (t.isUnaryExpression(arg, {operator: '!'}) && t.isUnaryExpression(arg.argument, {operator: '!'}) && t.isArrayExpression(arg.argument.argument) && arg.argument.argument.elements.length === 0) return true;
-                return false;
-            };
-
+            const isLiteralLike = (arg) => t.isLiteral(arg) || (t.isUnaryExpression(arg) && t.isLiteral(arg.argument));
             const toLiteralNode = (value) => {
                 if (typeof value === 'string') return t.stringLiteral(value);
                 if (typeof value === 'number' && Number.isFinite(value)) return t.numericLiteral(value);
                 if (typeof value === 'boolean') return t.booleanLiteral(value);
-                if (value === null) return t.nullLiteral();
-                return null;
-            };
-
-            const isDotSafeKey = (name) => {
-                if (typeof name !== 'string') return false;
-                if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name)) return false;
-                const reserved = new Set([
-                    'break', 'case', 'catch', 'class', 'const', 'continue', 'debugger', 'default', 'delete',
-                    'do', 'else', 'export', 'extends', 'finally', 'for', 'function', 'if', 'import', 'in',
-                    'instanceof', 'new', 'return', 'super', 'switch', 'this', 'throw', 'try', 'typeof', 'var',
-                    'void', 'while', 'with', 'yield', 'let', 'static', 'enum', 'await', 'implements', 'package',
-                    'protected', 'interface', 'private', 'public'
-                ]);
-                return !reserved.has(name);
-            };
-
-            const nodeToLiteralValue = (node) => {
-                if (!node) return { ok: false };
-                if (t.isStringLiteral(node) || t.isNumericLiteral(node) || t.isBooleanLiteral(node)) return { ok: true, value: node.value };
-                if (t.isNullLiteral(node)) return { ok: true, value: null };
-                if (t.isUnaryExpression(node) && (node.operator === '-' || node.operator === '+') && t.isNumericLiteral(node.argument)) {
-                    return { ok: true, value: node.operator === '-' ? -node.argument.value : node.argument.value };
-                }
-                return { ok: false };
-            };
-
-            const getMemberKey = (memberNode) => {
-                if (!memberNode.computed && t.isIdentifier(memberNode.property)) return { ok: true, value: memberNode.property.name };
-                if (!memberNode.computed) return { ok: false };
-
-                const prop = memberNode.property;
-                if (t.isStringLiteral(prop) || t.isNumericLiteral(prop)) return { ok: true, value: prop.value };
-                if (t.isUnaryExpression(prop) && (prop.operator === '-' || prop.operator === '+') && t.isNumericLiteral(prop.argument)) {
-                    return { ok: true, value: prop.operator === '-' ? -prop.argument.value : prop.argument.value };
-                }
-                return { ok: false };
-            };
-
-            const canReplaceMemberExpression = (path) => {
-                if (path.parentPath && path.parentPath.isAssignmentExpression() && path.parentKey === 'left') return false;
-                if (path.parentPath && path.parentPath.isUpdateExpression()) return false;
-                if (path.parentPath && path.parentPath.isUnaryExpression({ operator: 'delete' })) return false;
-                if (path.parentPath && path.parentPath.isForInStatement() && path.parentKey === 'left') return false;
-                if (path.parentPath && path.parentPath.isForOfStatement() && path.parentKey === 'left') return false;
-                return true;
+                if (value === null) return t.nullLiteral(); return null;
             };
 
             const tryReplaceByEvaluation = (path) => {
@@ -556,542 +540,58 @@
                     if (!evaluated.confident) return false;
                     const literalNode = toLiteralNode(evaluated.value);
                     if (!literalNode) return false;
-                    path.replaceWith(literalNode);
-                    foldedCount++;
-                    return true;
-                } catch (e) {
-                    return false;
-                }
-            };
-
-            const isNoOpWrapperBody = (fnName, bodyStmts) => {
-                if (!Array.isArray(bodyStmts)) return false;
-                if (bodyStmts.length === 0) return true;
-                if (bodyStmts.length !== 1) return false;
-                const stmt = bodyStmts[0];
-                if (!t.isExpressionStatement(stmt)) return false;
-                if (!t.isAssignmentExpression(stmt.expression, { operator: '=' })) return false;
-                const assign = stmt.expression;
-                if (!t.isIdentifier(assign.left, { name: fnName })) return false;
-                if (!t.isFunctionExpression(assign.right) && !t.isArrowFunctionExpression(assign.right)) return false;
-                if (!t.isBlockStatement(assign.right.body)) return false;
-                return assign.right.body.body.length === 0;
-            };
-
-            const seedNoOpWrappers = (programNode) => {
-                if (!programNode || !Array.isArray(programNode.body)) return;
-                programNode.body.forEach((node) => {
-                    if (t.isFunctionDeclaration(node) && node.id && node.id.name && node.body && Array.isArray(node.body.body)) {
-                        if (isNoOpWrapperBody(node.id.name, node.body.body)) noOpWrappers.add(node.id.name);
-                    }
-                    if (t.isVariableDeclaration(node)) {
-                        node.declarations.forEach((decl) => {
-                            if (!t.isIdentifier(decl.id) || !decl.init) return;
-                            if (!t.isFunctionExpression(decl.init) && !t.isArrowFunctionExpression(decl.init)) return;
-                            if (!t.isBlockStatement(decl.init.body)) return;
-                            if (isNoOpWrapperBody(decl.id.name, decl.init.body.body)) noOpWrappers.add(decl.id.name);
-                        });
-                    }
-                });
+                    path.replaceWith(literalNode); foldedCount++; return true;
+                } catch (e) { return false; }
             };
 
             return {
                 visitor: {
-                    Program: {
-                        enter(path) {
-                            seedNoOpWrappers(path.node);
-                        },
-                        exit(path) {
-                            // Dead Code Elimination (不要になった関数や変数を再帰的に削除)
-                            let changed = true;
-                            while (changed) {
-                                changed = false;
-                                path.traverse({
-                                    "VariableDeclarator|FunctionDeclaration"(childPath) {
-                                        const id = childPath.node.id;
-                                        if (!id || !t.isIdentifier(id)) return;
-                                        const binding = childPath.scope.getBinding(id.name);
-                                        if (!binding) return;
-                                        
-                                        let isReferencedOutside = false;
-                                        binding.referencePaths.forEach(refPath => {
-                                            // 参照元が自分自身の内部ではない（＝外部から呼ばれている）かチェック
-                                            if (!refPath.findParent(p => p === childPath)) {
-                                                isReferencedOutside = true;
-                                            }
-                                        });
-                                        
-                                        if (!isReferencedOutside) {
-                                            if (childPath.isVariableDeclarator()) {
-                                                childPath.remove();
-                                                const declPath = childPath.parentPath;
-                                                // var a = 1; のように親が空になれば親ごと削除
-                                                if (declPath && declPath.isVariableDeclaration() && declPath.node.declarations.length === 0) {
-                                                    declPath.remove();
-                                                }
-                                            } else {
-                                                childPath.remove();
-                                            }
-                                            changed = true;
-                                            replacedCount++;
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    },
-                    VariableDeclarator: {
-                        enter(path) {
-                            if (!t.isIdentifier(path.node.id)) return;
-                            const varName = path.node.id.name;
-                            const initNode = path.node.init;
-                            const binding = path.scope.getBinding(varName);
-
-                            if (binding && binding.constant && initNode && isLiteralLike(initNode)) {
-                                binding.referencePaths.forEach((refPath) => {
-                                    refPath.replaceWith(t.cloneNode(initNode, true));
-                                    replacedCount++;
-                                });
-                            }
-
-                            if (binding && binding.constant && t.isArrayExpression(initNode)) {
-                                let ok = true;
-                                const values = [];
-                                initNode.elements.forEach((el) => {
-                                    const parsed = nodeToLiteralValue(el);
-                                    if (!parsed.ok) ok = false;
-                                    values.push(parsed.ok ? parsed.value : undefined);
-                                });
-                                if (ok) constArrayDict[varName] = values;
-                            }
-
-                            if (t.isIdentifier(path.node.init)) {
-                                if (binding && binding.constant) {
-                                    binding.referencePaths.forEach((refPath) => {
-                                        refPath.replaceWith(t.identifier(path.node.init.name));
-                                        replacedCount++;
-                                    });
-                                }
-                            } else if (t.isObjectExpression(path.node.init)) {
-                                const objName = path.node.id.name;
-                                proxyDict[objName] = {};
-                                path.node.init.properties.forEach((prop) => {
-                                    if (!t.isObjectProperty(prop)) return;
-                                    let keyName = prop.key.name || (t.isLiteral(prop.key) ? prop.key.value : null);
-                                    if (keyName === null || keyName === undefined) return;
-                                    
-                                    if (t.isFunctionExpression(prop.value) || t.isArrowFunctionExpression(prop.value)) {
-                                        const body = prop.value.body;
-                                        if (t.isBlockStatement(body) && body.body.length === 1 && t.isReturnStatement(body.body[0])) {
-                                            proxyDict[objName][keyName] = { type: 'function', funcNode: prop.value };
-                                        } else if (!t.isBlockStatement(body)) {
-                                            proxyDict[objName][keyName] = { type: 'function_expr', expr: body, params: prop.value.params };
-                                        }
-                                    } else if (t.isStringLiteral(prop.value) || t.isNumericLiteral(prop.value)) {
-                                        proxyDict[objName][keyName] = { type: 'literal', valueNode: prop.value };
-                                    }
-                                });
-                            }
-                        },
-                        exit(path) {
-                            if (!t.isIdentifier(path.node.id)) return;
-                            const binding = path.scope.getBinding(path.node.id.name);
-                            if (!binding) return;
-                            if (binding.constantViolations && binding.constantViolations.length > 0) return;
-                            if (binding.referencePaths && binding.referencePaths.length > 0) return;
-
-                            if (!path.node.init) {
-                                path.remove();
-                                replacedCount++;
-                                return;
-                            }
-
-                            const initPath = path.get('init');
-                            if (initPath && typeof initPath.isPure === 'function' && initPath.isPure()) {
-                                path.remove();
-                                replacedCount++;
-                                const declPath = path.parentPath;
-                                if (declPath && declPath.isVariableDeclaration() && declPath.node.declarations.length === 0) {
-                                    declPath.remove();
-                                }
-                            }
-                        }
-                    },
-
-                    FunctionDeclaration(path) {
-                        const name = path.node.id && path.node.id.name;
-                        if (!name || !path.node.body || !Array.isArray(path.node.body.body)) return;
-                        const stmts = path.node.body.body;
-
-                        if (stmts.length === 0) {
-                            noOpWrappers.add(name);
-                            return;
-                        }
-
-                        if (stmts.length === 1 && t.isExpressionStatement(stmts[0]) && t.isAssignmentExpression(stmts[0].expression, { operator: '=' })) {
-                            const assign = stmts[0].expression;
-                            if (t.isIdentifier(assign.left, { name }) && t.isFunctionExpression(assign.right)) {
-                                const rhsBody = assign.right.body && assign.right.body.body;
-                                if (Array.isArray(rhsBody) && rhsBody.length === 0) {
-                                    noOpWrappers.add(name);
-                                }
-                            }
-                        }
-                    },
-                    "FunctionDeclaration|FunctionExpression"(path) {
-                        const node = path.node;
-                        const name = node.id && node.id.name;
-                        if (!name || !noOpWrappers.has(name)) return;
-                        const binding = path.scope.getBinding(name);
-                        if (binding && binding.referencePaths) {
-                            const externalRefs = binding.referencePaths.filter((refPath) => {
-                                return !refPath.findParent((p) => p === path);
-                            });
-                            if (externalRefs.length > 0) return;
-                            if (path.isFunctionDeclaration()) {
-                                path.remove();
-                            } else {
-                                path.replaceWith(t.functionExpression(null, node.params || [], t.blockStatement([])));
-                            }
-                            replacedCount++;
-                        }
-                    },
-                    
-                    // 3. Proxy/member resolution
-                    MemberExpression(path) {
-                        const keyInfo = getMemberKey(path.node);
-
-                        if (path.node.computed && t.isStringLiteral(path.node.property) && isDotSafeKey(path.node.property.value)) {
-                            path.node.computed = false;
-                            path.node.property = t.identifier(path.node.property.value);
-                            replacedCount++;
-                            return;
-                        }
-
-                        if (t.isIdentifier(path.node.object) && keyInfo.ok) {
-                            const objName = path.node.object.name;
-                            if (Object.prototype.hasOwnProperty.call(constArrayDict, objName)) {
-                                const values = constArrayDict[objName];
-                                const idx = Number(keyInfo.value);
-                                if (Number.isInteger(idx) && idx >= 0 && idx < values.length) {
-                                    const literalNode = toLiteralNode(values[idx]);
-                                    if (literalNode) {
-                                        path.replaceWith(literalNode);
-                                        replacedCount++;
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (t.isIdentifier(path.node.object)) {
-                            const objName = path.node.object.name;
-                            let keyName = keyInfo.ok ? keyInfo.value : null;
-                            
-                            if (keyName !== null && keyName !== undefined && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                const entry = proxyDict[objName][keyName];
-                                if (entry.type === 'literal') {
-                                    path.replaceWith(t.cloneNode(entry.valueNode));
-                                    replacedCount++;
-                                    return;
-                                }
-                            }
-                        }
-
-                        if (!canReplaceMemberExpression(path)) return;
-                        tryReplaceByEvaluation(path);
-                    },
-                    
                     CallExpression(path) {
-                        // constructor("debugger") や constructor("while (true) {}") の生成を空関数に置換
-                        if (t.isMemberExpression(path.node.callee)) {
-                            const prop = path.node.callee.property;
-                            const isConstructor = (!path.node.callee.computed && t.isIdentifier(prop, {name: 'constructor'})) ||
-                                                  (path.node.callee.computed && t.isStringLiteral(prop, {value: 'constructor'}));
-                            if (isConstructor && path.node.arguments.length > 0 && t.isStringLiteral(path.node.arguments[0])) {
-                                const val = path.node.arguments[0].value;
-                                if (val.includes('debugger') || val.includes('while (true)')) {
-                                    path.replaceWith(t.functionExpression(null, [], t.blockStatement([])));
-                                    replacedCount++;
-                                    return;
-                                }
-                            }
-                        }
-
                         if (t.isIdentifier(path.node.callee)) {
                             const funcName = path.node.callee.name;
                             if (blockedCallees.has(funcName)) return;
-                            
-                            let argsConfident = true;
-                            path.get('arguments').forEach(argPath => {
-                                if (!argPath.evaluate().confident && !isLiteralLike(argPath.node)) argsConfident = false;
-                            });
-                            if (argsConfident) {
+                            if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteralLike)) {
                                 const callCode = code.substring(path.node.start, path.node.end);
                                 try {
                                     const res = win.eval(callCode);
-                                    if (res !== undefined && res !== null && typeof res !== 'function') {
-                                        const literalNode = toLiteralNode(res);
-                                        if (literalNode) { path.replaceWith(literalNode); replacedCount++; return; }
-                                    }
+                                    const literalNode = toLiteralNode(res);
+                                    if (literalNode) { path.replaceWith(literalNode); replacedCount++; return; }
                                 } catch (e) {}
                             }
                         }
-
-                        // 5. Inline proxy function calls と MemberExpression関数の動的評価
-                        if (t.isMemberExpression(path.node.callee)) {
-                            const mem = path.node.callee;
-                            if (t.isIdentifier(mem.object)) {
-                                const objName = mem.object.name;
-                                const keyInfo = getMemberKey(mem);
-                                let keyName = keyInfo.ok ? keyInfo.value : null;
-                                
-                                if (keyName !== null && keyName !== undefined && proxyDict[objName] && proxyDict[objName][keyName]) {
-                                    const entry = proxyDict[objName][keyName];
-                                    if (entry.type === 'function' || entry.type === 'function_expr') {
-                                        let retNode = entry.type === 'function' ? entry.funcNode.body.body[0].argument : entry.expr;
-                                        let params = entry.type === 'function' ? entry.funcNode.params : entry.params;
-                                        const args = path.node.arguments;
-                                        const paramMap = {};
-                                        const safeParams = Array.isArray(params) ? params :[];
-                                        safeParams.forEach((p, idx) => {
-                                            if (args[idx] && t.isIdentifier(p)) paramMap[p.name] = args[idx];
-                                        });
-                                        const replaceParams = (node) => {
-                                            if (Array.isArray(node)) {
-                                                return node.map((n) => replaceParams(n)).filter((n) => n !== undefined);
-                                            }
-                                            if (node === null || node === undefined) return node;
-                                            if (typeof node !== 'object') return node;
-                                            if (t.isIdentifier(node) && Object.prototype.hasOwnProperty.call(paramMap, node.name)) {
-                                                return t.cloneNode(paramMap[node.name], true);
-                                            }
-                                            if (typeof node.type !== 'string') return node;
-
-                                            const cloned = t.cloneNode(node, false);
-                                            Object.keys(cloned).forEach((key) => {
-                                                const value = cloned[key];
-                                                if (Array.isArray(value)) {
-                                                    cloned[key] = value.map((n) => replaceParams(n)).filter((n) => n !== undefined);
-                                                } else if (value && typeof value === 'object' && typeof value.type === 'string') {
-                                                    const replaced = replaceParams(value);
-                                                    if (replaced !== undefined) cloned[key] = replaced;
-                                                }
-                                            });
-                                            return cloned;
-                                        };
-                                        const inlined = replaceParams(retNode);
-                                        if (inlined && typeof inlined.type === 'string') { path.replaceWith(inlined); replacedCount++; return;}
-                                    }
-                                }
-                            }
-                        }
-
-                        if (path.node.arguments.length > 0 && path.node.arguments.every(isLiteralLike)) {
-                            const callCode = code.substring(path.node.start, path.node.end);
-                            try {
-                                const res = win.eval(callCode);
-                                const literalNode = toLiteralNode(res);
-                                if (literalNode) { path.replaceWith(literalNode); replacedCount++; return; }
-                            } catch (e) {}
-                        }
                     },
-                    
-                    // 6. 螳壽焚逡ｳ縺ｿ霎ｼ縺ｿ
-                    EmptyStatement(path) {
-                        path.remove();
-                    },
-
-                    ExpressionStatement(path) {
-                        // 配列シャッフル用IIFEの削除
-                        if (t.isCallExpression(path.node.expression) && t.isFunctionExpression(path.node.expression.callee)) {
-                            const args = path.node.expression.arguments;
-                            // 通常2つの引数 (配列を返す関数, 数値) を受け取る
-                            if (args.length >= 2 && t.isIdentifier(args[0]) && t.isNumericLiteral(args[1])) {
-                                const bodyStmts = path.node.expression.callee.body.body;
-                                const hasWhile = bodyStmts.some(stmt => t.isWhileStatement(stmt));
-                                if (hasWhile) {
-                                    path.remove();
-                                    replacedCount++;
-                                    return;
-                                }
-                            }
-                        }
-
-                        if (!t.isSequenceExpression(path.node.expression)) return;
-                        const exprs = path.node.expression.expressions ||[];
-                        if (exprs.length <= 1) return;
-                        path.replaceWithMultiple(exprs.map((expr) => t.expressionStatement(expr)));
-                        replacedCount++;
-                    },
-
                     BinaryExpression(path) { tryReplaceByEvaluation(path); },
                     UnaryExpression(path) { tryReplaceByEvaluation(path); },
                     LogicalExpression(path) { tryReplaceByEvaluation(path); },
-                    ConditionalExpression(path) { tryReplaceByEvaluation(path); },
-                    IfStatement(path) {
-                        try {
-                            const evaluated = path.get('test').evaluate();
-                            if (!evaluated.confident || typeof evaluated.value !== 'boolean') return;
-                            if (evaluated.value) {
-                                if (t.isBlockStatement(path.node.consequent)) {
-                                    path.replaceWithMultiple(path.node.consequent.body);
-                                } else {
-                                    path.replaceWith(path.node.consequent);
-                                }
-                            } else if (path.node.alternate) {
-                                if (t.isBlockStatement(path.node.alternate)) {
-                                    path.replaceWithMultiple(path.node.alternate.body);
-                                } else {
-                                    path.replaceWith(path.node.alternate);
-                                }
-                            } else {
-                                path.remove();
-                            }
-                            foldedCount++;
-                        } catch (e) {}
-                    },
-
-                    // 7. 蛻ｶ蠕｡繝輔Ο繝ｼ蟷ｳ蝮ｦ蛹悶・隗｣髯､
                     WhileStatement(path) {
                         const body = path.node.body;
                         if (!t.isBlockStatement(body)) return;
                         const switchStmt = body.body.find(n => t.isSwitchStatement(n));
-                        if (!switchStmt) return;
-                        
-                        // 繝代ち繝ｼ繝ｳA: 驟榊・繧ｷ繝輔ヨ蝙・(Obfuscator.io)
-                        if (t.isMemberExpression(switchStmt.discriminant) && t.isUpdateExpression(switchStmt.discriminant.property)) {
-                            const arrayName = switchStmt.discriminant.object.name;
-                            const binding = path.scope.getBinding(arrayName);
-                            if (binding && binding.path.isVariableDeclarator()) {
-                                const init = binding.path.node.init;
-                                let seq;
-                                const evalRes = binding.path.get('init').evaluate();
-                                if (evalRes.confident && Array.isArray(evalRes.value)) {
-                                    seq = evalRes.value;
-                                } else {
-                                    try {
-                                        let codePart = "";
-                                        try {
-                                            codePart = Babel.transformFromAst(t.program([t.expressionStatement(init)]), "", {ast: false, code: true}).code || "";
-                                        } catch (eGen) {
-                                            if (Number.isInteger(init.start) && Number.isInteger(init.end) && init.end > init.start) {
-                                                codePart = code.slice(init.start, init.end);
+                        if (!switchStmt || !t.isIdentifier(switchStmt.discriminant)) return;
+                        const stateVarName = switchStmt.discriminant.name;
+                        const binding = path.scope.getBinding(stateVarName);
+                        if (binding && binding.path.isVariableDeclarator()) {
+                            const initVal = binding.path.node.init;
+                            if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
+                                let currentState = initVal.value; const caseMap = {};
+                                switchStmt.cases.forEach(c => {
+                                    if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
+                                        const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
+                                        let nextState = null; const cleanStmts =[];
+                                        for (const stmt of stmts) {
+                                            if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) && t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
+                                                if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) { nextState = stmt.expression.right.value; continue; }
                                             }
+                                            cleanStmts.push(stmt);
                                         }
-                                        if (codePart) seq = win.eval(codePart);
-                                    } catch(e) {}
-                                }
-                                
-                                if (Array.isArray(seq)) {
-                                    const caseMap = {};
-                                    switchStmt.cases.forEach(c => {
-                                        if (c.test && (t.isStringLiteral(c.test) || t.isNumericLiteral(c.test))) {
-                                            caseMap[c.test.value] = c.consequent.filter(n => !t.isContinueStatement(n) && !t.isBreakStatement(n));
-                                        }
-                                    });
-                                    
-                                    let unflattened =[];
-                                    let valid = true;
-                                    seq.forEach(key => {
-                                        if (caseMap[key]) unflattened = unflattened.concat(caseMap[key]);
-                                        else valid = false;
-                                    });
-                                    
-                                    if (valid && unflattened.length > 0) {
-                                        path.replaceWithMultiple(unflattened);
-                                        replacedCount++;
+                                        caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
                                     }
+                                });
+                                const unflattened =[]; let curr = currentState; let visited = new Set();
+                                while (curr !== null && caseMap[curr] && !visited.has(curr)) {
+                                    visited.add(curr); unflattened.push(...caseMap[curr].stmts); curr = caseMap[curr].nextState;
                                 }
-                            }
-                        }
-                        
-                        // 繝代ち繝ｼ繝ｳB: 迥ｶ諷句､画焚莉｣蜈･蝙・(Example 4蟇ｾ蠢・
-                        // パターンB: 状態変数代入型 (Example 4, Example 2対応)
-                        if (t.isIdentifier(switchStmt.discriminant)) {
-                            const stateVarName = switchStmt.discriminant.name;
-                            const binding = path.scope.getBinding(stateVarName);
-                            if (binding && binding.path.isVariableDeclarator() && binding.path.node.init) {
-                                const initVal = binding.path.node.init;
-                                let currentState = null;
-                                
-                                if (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal)) {
-                                    currentState = initVal.value;
-                                } else {
-                                    // 初期値が関数呼び出し等ならSandboxで評価
-                                    try {
-                                        let codePart = code.slice(initVal.start, initVal.end);
-                                        currentState = win.eval(codePart);
-                                    } catch(e) {}
-                                }
-                                
-                                if (currentState !== null && currentState !== undefined) {
-                                    const caseMap = {};
-                                    switchStmt.cases.forEach(c => {
-                                        if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
-                                            const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt));
-                                            let nextState = null;
-                                            const cleanStmts =[];
-                                            
-                                            const resolveNextState = (rightNode) => {
-                                                if (t.isNumericLiteral(rightNode) || t.isStringLiteral(rightNode)) return rightNode.value;
-                                                try {
-                                                    let codePart = code.slice(rightNode.start, rightNode.end);
-                                                    return win.eval(codePart);
-                                                } catch(e) { return null; }
-                                            };
-
-                                            for (const stmt of stmts) {
-                                                // 直下の代入
-                                                if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) &&
-                                                    t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
-                                                    let val = resolveNextState(stmt.expression.right);
-                                                    if (val !== null && val !== undefined) {
-                                                        nextState = val;
-                                                        continue; // 代入式はもう不要なので削除
-                                                    }
-                                                }
-                                                // ブロック内代入 (Example 4対応)
-                                                if (t.isBlockStatement(stmt)) {
-                                                    let innerNextState = null;
-                                                    const cleanInner =[];
-                                                    for (const inner of stmt.body) {
-                                                        if (t.isExpressionStatement(inner) && t.isAssignmentExpression(inner.expression) &&
-                                                            t.isIdentifier(inner.expression.left, { name: stateVarName })) {
-                                                            let val = resolveNextState(inner.expression.right);
-                                                            if (val !== null && val !== undefined) {
-                                                                innerNextState = val;
-                                                                continue;
-                                                            }
-                                                        }
-                                                        cleanInner.push(inner);
-                                                    }
-                                                    if (innerNextState !== null) {
-                                                        nextState = innerNextState;
-                                                        stmt.body = cleanInner;
-                                                    }
-                                                }
-                                                cleanStmts.push(stmt);
-                                            }
-                                            caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
-                                        }
-                                    });
-                                    
-                                    const unflattened =[];
-                                    let curr = currentState;
-                                    let visited = new Set();
-                                    
-                                    while (curr !== null && curr !== undefined && caseMap[curr] && !visited.has(curr)) {
-                                        visited.add(curr);
-                                        unflattened.push(...caseMap[curr].stmts);
-                                        curr = caseMap[curr].nextState;
-                                    }
-                                    
-                                    if (unflattened.length > 0) {
-                                        path.replaceWithMultiple(unflattened);
-                                        replacedCount++;
-                                    }
-                                }
+                                if (unflattened.length > 0) { path.replaceWithMultiple(unflattened); replacedCount++; }
                             }
                         }
                     }
@@ -1100,41 +600,42 @@
         };
 
         try {
-            const transformed = Babel.transformFromAst(ast, code, {
-                generatorOpts: { jsescOption: { minimal: true } },
-                plugins:[deobfuscatePlugin]
-            });
+            const transformed = Babel.transformFromAst(ast, code, { generatorOpts: { jsescOption: { minimal: true } }, plugins:[deobfuscatePlugin] });
             document.body.removeChild(iframe);
-            if (replacedCount > 0 || foldedCount > 0) {
-                log(`AST Replace: Logic/Control Flow unflattened, ${replacedCount}points, Constant folding ${foldedCount}points`, "info");
-            }
+            if (replacedCount > 0 || foldedCount > 0) log(`AST Deobf: Evaluated ${replacedCount} calls, Unflattened ${foldedCount} logic paths`, "info");
             return { code: transformed.code, changed: (replacedCount > 0 || foldedCount > 0) };
         } catch (e) {
             document.body.removeChild(iframe);
-            log("AST transformation error: " + e.message, "error");
+            log("AST engine error: " + e.message, "error");
             return { code, changed: false };
         }
     }
 
-        async function deepAutoSingle(code, label = "") {
-        const prefix = label ? `[${label}] ` : "";
-        let currentCode = code;
-        let prevOverallCode = "";
-        let globalIter = 0;
-        const MAX_GLOBAL_ITER = 6;
+    document.getElementById('btn-strings').addEventListener('click', (e) => {
+        e.preventDefault();
+        const snippets = splitInputIntoSnippets(cmInput.getValue());
+        if (!snippets.length) return;
+        const results = snippets.map((snippet) => {
+            log(`Decoding AST & Unflattening...`, "info");
+            const result = decodeStringsAST(snippet.code);
+            return { title: snippet.title, code: formatCode(result.code) };
+        });
+        cmOutput.setValue(buildMultiSnippetOutput(results));
+    });
 
-        while (currentCode !== prevOverallCode && globalIter < MAX_GLOBAL_ITER) {
-            prevOverallCode = currentCode;
-            globalIter++;
-            log(`${prefix}Pass ${globalIter}: Dynamic + AST`, "warning");
-            
+    // --- Deep Auto ---
+    async function deepAutoSingle(code, label = "") {
+        const prefix = label ? `[${label}] ` : "";
+        let currentCode = code; let prevOverallCode = ""; let globalIter = 0;
+        
+        while (currentCode !== prevOverallCode && globalIter < 3) {
+            prevOverallCode = currentCode; globalIter++;
+            log(`${prefix}Pass ${globalIter}: Sandbox Dynamic Unpack...`, "warning");
             const unpacked = await dynamicUnpack(currentCode);
             if (unpacked !== currentCode) currentCode = unpacked;
-
-            let prevAstCode = "";
-            let astIter = 0;
-            const MAX_AST_ITER = 12;
-            while (currentCode !== prevAstCode && astIter < MAX_AST_ITER) {
+            
+            let prevAstCode = ""; let astIter = 0;
+            while (currentCode !== prevAstCode && astIter < 5) {
                 prevAstCode = currentCode;
                 const result = decodeStringsAST(currentCode);
                 currentCode = result.code;
@@ -1142,48 +643,20 @@
                 astIter++;
             }
         }
-
+        
+        log(`${prefix}Final Pass: Anti-Minify...`, "info");
+        currentCode = antiMinify(currentCode);
         return { code: formatCode(currentCode), passes: globalIter };
     }
 
-    document.getElementById('btn-dynamic').addEventListener('click', async () => {
-        const snippets = splitInputIntoSnippets(inputEditor.value);
+    document.getElementById('btn-auto').addEventListener('click', async (e) => {
+        e.preventDefault();
+        const snippets = splitInputIntoSnippets(cmInput.getValue());
         if (!snippets.length) return;
-        if (snippets.length > 1) log(`${snippets.length} snippets detected`, "info");
-
-        const results = [];
-        for (let i = 0; i < snippets.length; i++) {
-            const snippet = snippets[i];
-            if (snippet.title) log(`[${snippet.title}] Dynamic Unpack`, "warning");
-            const unpacked = await dynamicUnpack(snippet.code);
-            results.push({ title: snippet.title, code: formatCode(unpacked) });
-        }
-        outputEditor.value = buildMultiSnippetOutput(results);
-    });
-    
-    document.getElementById('btn-strings').addEventListener('click', () => {
-        const snippets = splitInputIntoSnippets(inputEditor.value);
-        if (!snippets.length) return;
-        if (snippets.length > 1) log(`${snippets.length} snippets detected`, "info");
-
-        const results = snippets.map((snippet) => {
-            if (snippet.title) log(`[${snippet.title}] Decode AST`, "warning");
-            const result = decodeStringsAST(snippet.code);
-            return { title: snippet.title, code: formatCode(result.code) };
-        });
-        outputEditor.value = buildMultiSnippetOutput(results);
-    });
-
-    // 4. Deep Auto Deobfuscate pipeline
-    document.getElementById('btn-auto').addEventListener('click', async () => {
-        const snippets = splitInputIntoSnippets(inputEditor.value);
-        if (!snippets.length) return;
-        
         log("==== Deep Auto Deobfuscation Start ====", "success");
-        outputEditor.value = "Processing...";
-        if (snippets.length > 1) log(`${snippets.length} snippets detected`, "info");
-
-        const results = [];
+        cmOutput.setValue("Processing...");
+        
+        const results =[];
         for (let i = 0; i < snippets.length; i++) {
             const snippet = snippets[i];
             const label = snippet.title || `Snippet ${i + 1}`;
@@ -1192,7 +665,7 @@
             log(`[${label}] done (passes: ${result.passes})`, "success");
         }
         
-        outputEditor.value = buildMultiSnippetOutput(results);
+        cmOutput.setValue(buildMultiSnippetOutput(results));
         log("==== Deep Auto Deobfuscation Done ====", "success");
     });
 </script>
