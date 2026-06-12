@@ -1,583 +1,389 @@
 <!DOCTYPE html>
-<html lang="ja" data-bs-theme="dark">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal JS Deobfuscator Studio Ultimate V3</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css">
-    
-    <style>
-        html, body {
-            margin: 0; padding: 12px; height: 100vh; background-color: #17181a; color: #d4d4d4; 
-            font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;
-        }
-        * { box-sizing: border-box; }
-        
-        header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid #2d2f33; padding-bottom: 10px; flex-shrink: 0; }
-        h1 { margin: 0; font-size: 18px; font-weight: 600; color: #e4e4e4; display: flex; align-items: center; gap: 8px; }
-        .toolbar { display: flex; gap: 8px; align-items: center; margin-left: auto; }
-
-        .btn-success-custom { background-color: #238636; color: #fff; border: 1px solid #2ea043; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-success-custom:hover { background-color: #2ea043; }
-        .btn-danger-custom { background-color: transparent; color: #f85149; border: 1px solid #f85149; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-danger-custom:hover { background-color: #f85149; color: #fff; }
-
-        .dropdown-menu { background-color: #25262a; border: 1px solid #3d4047; font-size: 13px; }
-        .dropdown-item { padding: 8px 16px; color: #d4d4d4; }
-        .dropdown-item:hover { background-color: #313338; color: #ffffff; }
-        
-        .main-container { display: flex; gap: 12px; flex: 1; min-height: 0; flex-direction: row; }
-        .window-panel { flex: 1; display: flex; flex-direction: column; background-color: #1e1f22; border: 1px solid #2d2f33; border-radius: 6px; overflow: hidden; min-height: 0; }
-        .window-header { padding: 6px 12px; background-color: #25262a; font-size: 12px; font-weight: 600; border-bottom: 1px solid #2d2f33; color: #e4e4e4; display: flex; justify-content: space-between; align-items: center; }
-        .editor-container { flex: 1; position: relative; }
-        
-        .CodeMirror { position: absolute; top: 0; left: 0; right: 0; bottom: 0; height: 100% !important; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5; }
-        .cm-s-darcula.CodeMirror { background-color: #1e1f22; color: #e4e4e4; }
-        .cm-s-darcula .CodeMirror-gutters { background-color: #1e1f22; border-right: 1px solid #2d2f33; }
-        
-        .log-section { height: 150px; flex-shrink: 0; background-color: #1e1f22; border: 1px solid #2d2f33; border-radius: 6px; margin-top: 12px; display: flex; flex-direction: column; }
-        .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: #b9bbbe; border-bottom: 1px solid #2d2f33; display: flex; justify-content: space-between; align-items: center; }
-        .log-content { flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; line-height: 1.5; color: #b9bbbe; }
-        .log-msg { border-bottom: 1px dashed rgba(45, 47, 51, 0.8); padding: 4px 0; word-break: break-all; }
-        .log-msg.info { color: #58a6ff; } .log-msg.success { color: #3fb950; } .log-msg.error { color: #f85149; } .log-msg.warning { color: #d29922; }
-        
-        .icon-btn { background: transparent; color: #b9bbbe; border: none; padding: 4px 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; font-size: 12px; gap: 4px; }
-        .icon-btn:hover { background: rgba(255,255,255,0.1); color: #e4e4e4; }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #3d4047; border-radius: 4px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Deobfuscator Sandbox</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500/30">
 
-<header>
-    <h1><i class="bi bi-fire" style="color: #f85149; font-size: 20px;"></i> Universal JS Deobfuscator <span style="color: #6b6f75; font-size: 12px;">ULTIMATE V3</span></h1>
-    <div class="toolbar">
-        <div class="dropdown">
-            <button class="btn-success-custom dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-tools"></i> Actions</button>
-            <ul class="dropdown-menu dropdown-menu-dark shadow-lg">
-                <li><a class="dropdown-item fw-bold" href="#" id="btn-auto"><i class="bi bi-magic text-success me-2"></i> Deep Auto Deobfuscate</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" id="btn-dynamic"><i class="bi bi-play-circle text-info me-2"></i> Sandbox Unpack</a></li>
-                <li><a class="dropdown-item" href="#" id="btn-strings"><i class="bi bi-fonts text-warning me-2"></i> Decode Strings AST</a></li>
-                <li><a class="dropdown-item" href="#" id="btn-antiminify"><i class="bi bi-person-lines-fill me-2" style="color: #b392f0;"></i> Anti-Minify</a></li>
-            </ul>
-        </div>
-        <button class="btn-danger-custom" id="btn-clear"><i class="bi bi-trash"></i> Clear</button>
+    <div class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3">
+                <span class="text-indigo-500 font-bold text-lg font-mono">&lt;JS_DEOBFUSCATOR_SANDBOX/&gt;</span>
+                <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-mono">DYNAMIC HOOK v1.0</span>
+            </div>
+            <div class="text-xs text-slate-500 font-mono">
+                隔離された動的フックおよびアンチデバッグ回避環境
+            </div>
+        </header>
+
+        <!-- Main Content (2 Column Layout) -->
+        <main class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 min-h-0 bg-slate-950">
+            <!-- Left: Input Area -->
+            <div class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 gap-3 min-h-0">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-mono text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        難読化コードの入力 (Obfuscated Input)
+                    </h2>
+                    <button id="btn-clear" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50">
+                        クリア
+                    </button>
+                </div>
+                <div class="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800">
+                    <textarea id="input-code" class="hidden">var _jid_0x120276=_jid_0x15b5;(function(_0x5825f4,_0x2c7372){var _0x41c4b3=_jid_0x15b5,_0x3d4b2d=_0x5825f4();while(!![]){try{var _0x56a4ad=parseInt(_0x41c4b3(0x16f))/0x1+parseInt(_0x41c4b3(0x16c))/0x2+-parseInt(_0x41c4b3(0x170))/0x3+parseInt(_0x41c4b3(0x172))/0x4+parseInt(_0x41c4b3(0x168))/0x5*(parseInt(_0x41c4b3(0x167))/0x6)+-parseInt(_0x41c4b3(0x175))/0x7*(-parseInt(_0x41c4b3(0x169))/0x8)+-parseInt(_0x41c4b3(0x164))/0x9*(parseInt(_0x41c4b3(0x174))/0xa);if(_0x56a4ad===_0x2c7372)break;else _0x3d4b2d['push'](_0x3d4b2d['shift']());}catch(_0x4ab75d){_0x3d4b2d['push'](_0x3d4b2d['shift']());}}}(_jid_0x4cdc,0x94ad4));function _jid_0x4cdc(){var _0x8b9cba=['search','length','384BVlGkG','21270EzJEXm','439632IlkkiS','toString','ilter','2155646CrjmIc','charCodeAt','constructor','703882arrWpq','2002272gZmVCQ','(((.+)+)+)+$','4157500UrQBgx','sys_2sdwcvh1x5m','7705060VjPBWn','63WUMOyA','27RJjkTX'];_jid_0x4cdc=function(){return _0x8b9cba;};return _jid_0x4cdc()}function _jid_0x15b5(_0x1a96ce,_0x1cc694){_0x1a96ce=_0x1a96ce-0x164;var _0x1948dd=_jid_0x4cdc();var _0x8c37aa=_0x1948dd[_0x1a96ce];return _0x8c37aa};(function(_0x2eddf8,_0xaa5e4d){var _0x418670=_jid_0x15b5,_0x31e5d4=(function(){var _0xf4dff5=!![];return function(_0x3deac5,_0x466c9a){var _0x12f7de=_0xf4dff5?function(){if(_0x466c9a){var _0x3a2bdc=_0x466c9a['apply'](_0x3deac5,arguments);return _0x466c9a=null,_0x3a2bdc;}}:function(){};return _0xf4dff5=![],_0x12f7de}}()),_0x1172c2=_0x31e5d4(this,function(){var _0x473c45=_jid_0x15b5;return _0x1172c2[_0x473c45(0x16a)]()[_0x473c45(0x165)]('(((.+)+)+)+$')[_0x473c45(0x16a)]()[_0x473c45(0x16e)](_0x1172c2)[_0x473c45(0x165)](_0x473c45(0x171))});_0x1172c2();var _0x2a7891=[],_0x150c3d=0x0,_0x54f5db,_0x30a131='',_0x41a1d0=Date['now']()>0x0?0x0:0x1,_0x196310=atob(_0xaa5e4d);for(var _0x46ce97=0x0;_0x46ce97<0x100;_0x46ce97++)_0x2a7891[_0x46ce97]=_0x46ce97;for(var _0x46ce97=0x0;_0x46ce97<0x100;_0x46ce97++){_0x150c3d=(_0x150c3d+_0x2a7891[_0x46ce97]+_0x2eddf8[_0x418670(0x16d)](_0x46ce97%_0x2eddf8[_0x418670(0x166)])+_0x41a1d0)%0x100,_0x54f5db=_0x2a7891[_0x46ce97],_0x2a7891[_0x46ce97]=_0x2a7891[_0x150c3d],_0x2a7891[_0x150c3d]=_0x54f5db}_0x150c3d=0x0;for(var _0x46ce97=0x0,_0x369d77=0x0;_0x369d77<_0x196310[_0x418670(0x166)];_0x369d77++){_0x46ce97=(_0x46ce97+0x1)%0x100,_0x150c3d=(_0x150c3d+_0x2a7891[_0x46ce97])%0x100,_0x54f5db=_0x2a7891[_0x46ce97],_0x2a7891[_0x46ce97]=_0x2a7891[_0x150c3d],_0x2a7891[_0x150c3d]=_0x54f5db,_0x30a131+=String['fromCharCode'](_0x196310['charCodeAt'](_0x369d77)^_0x2a7891[(_0x2a7891[_0x46ce97]+_0x2a7891[_0x150c3d])%0x100])}[]['f'+_0x418670(0x16b)]['c'+'onstructor'](decodeURIComponent(escape(_0x30a131)))()}(_jid_0x120276(0x173),'9rxV+uAdwwGNeHt0cXSofDiroizjnB64WM/qQpgWyixbqgcn6Ov+tU4Hl742FEiIxwJy7+moGcQUFX/Oxs/C6WSpd5QiKO4juaZJcUqBJ6HYJXjYxHPpRoCvPcmZcWL+ltPotKcDYV0ebf+eS+RpB2fMFF+Hzbp0wfXnL1EV5EcpDcEdvsycJUq1SteXEqZEiA8TDWM/xHOR8lHR3ANHkw8/RlYrg4LG+VF8eDLtmKWCbVn4dPashKfc/vXNO6U5tgWj1LfmrcMnmA89KHcfdbl9UvJyi1cNmz4F35ga3zEpRzjgW5d2MuPQjih9AxKVOpZgEPHD+EUH72fmo066EyVw2WroR+YZgbLf9Dw0UwQT/4/dIIQ4veKVDUU6KCUFyFaToG2uBIpGgXsmNl0tMhQZmFTMjGMRdWx16MHTpOcC0OE0/MSLe0Gosjaz6nAoBpcep3+OkfucD6+fauX5Ve1I37g9W4cmgr4Y/5plAq+YFaMYM318a+ZJDe7LHlj8MH3Lim+VZsZwkGbNYfGdi/LNeuYCXEdfF+drW1AQkS4RrJq+KTzUKk1T8r5fALnzkP/yqb1D7aEBKLrU3l0CjlOb9w5RfHVbT5VUIfvQSt3GVSDJrOUFnRKjtpJttUpuDPRCFFR0U6qyYuDkHOav4E4+6Jtb/cCqSwk+dAQqQDVXJHXxGT5T1vC18HFzV7MfD0M62fvEx+Ngs7+H6JuuGX8uX2m5SPamXLfvFWX9P2WzpE731mmZKqpIBDNx1qOiwjsG3bscgVg1nDjUTmC5p8mYiNJTwxvD6kmfPQodUyrRToyFloxdgNQEAxHRbv//pU3j+F1ZbRwM4NpEFzKlq/OYbZ+7zEQT0bmZAO6ckks3jLMpfFWLunWhHY2tquGL+koPGC+dN2TYfnxMxr6MK2qOrTLtl3ggJ8KFzFlQTxbr0F9E49rxbCYt0eJ2XuHmSYEb8C5WhkKSrsVI3xf/+RyO4LzBtbgh5RRWCw0Kr8gb2E5g+W0qTJc8rNJZ5+cLo/dVwAbBJizA4qcK7MFNxvvch+dr9Br3OLvoaGXXHtJAbB/3K2itfHUmsF8dXGrL72bD9DkrkFGsL8N2opjzWP15G5lsPGeCULD1kuN8gOYy3I8rYpX6/VELE9B9t4Ya6O9b/nKXbF5o5TpljmR/E1U1mET+bO8us+OTeFUN0EYmMN53n74NpL3xhUw86l+M1Ir8+6Mx5jtFBxhNjb8wZr/wwVOYvK+l0t7GLuzJVPKQQU/91sVnwI6EJrC/DcTFbCbQnHIhA5sNKSugGb000CdVGTA9B0hE6mgexLNuFq9jFJhQl2h6h4CI0ya4xW4qcsVinnqQHgwN4KK1od7KJhd1fVP6t3ZWagjimE38D4S3jMGn/ywcZ1oTY1t1rWmxJSL4s302jRY4QlE5SHcPYrEUx2pFXSd4xdi4N5JeCtB1qim+LjpRLJ1dHRLQfDH49O/OyPw27sr2hD0/IxwFRWMqBHC+q0xUXpSmJls1gN1yVOPMROqC40XxSlV93IixdCxIylQWhfhWeMgDvQq9UVLfCnGAlUARTM5f9ywZWGtBcMGe5Tk0K3sSUHHCFUxw/8shaoZqt9E3bFubQUXw/GZWbcomJDl/x/AsdtRtBmkFTVUS2OAjRdGjSx70gFJe6IM0oD3MdbaaU3SKgKsmPkjZXhMITaG5E27gxx5/xnCjvOlbbDQjW2NoHLohsm9HH959qE9KvRHMvUcgjH/qW4unxItft0MFC5SNI6jetcpxn3sXeAZO71klISOuyo9MQa4qL9WhaaJlJ6tYYBecWoSxoFLMG0zWus4vIlnGr631l8r9Kpg1rwIMJwaLHGsPi1qfFuOGpCYI+cltrXk8gQBRKVEZOvGSlGAaeVWBk4M15cfPp7GuXSFZhqGEO30v4LZRLL9xkNUk00xpy0SC4OcVd/NXJHL5q6gFdE4tDkSwTrgmeWd81+SZX36ibrHYL2Oujo0NNiF0yJVCBNodLNo8ZQPm5/mOI4SSLdV1GwyJyKoL/5aHLbhR4/6AOU1HNPTFAenRd/XhAdyt0No2uNajVgA7E6s4EEBgZOgPu7sp7IWZSCN9hETsJD06R5XbdNuFNPk6WSct2Z/IZlxM7OBSXbF/rcyIYVqKpf3a56A9KR65BgpcAiCK1vB4sZoJLsIpYh4zyn8m4ECYYVPXHnlQRdLvmMGtZ/nFgnRIjEjfpSJKjZMUj3/ihA0DBOblIIi34uE0+vXP/pV5SmZTr3fitGfqxAZg30S4ZmvLQhQ7sZmXUy0P24oV+DgqJ0ego/</textarea>
+                </div>
+            </div>
+
+            <!-- Right: Output Area -->
+            <div class="flex flex-col bg-slate-900/40 border border-slate-800/80 rounded-xl p-4 gap-3 min-h-0">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-mono text-xs font-semibold text-slate-400 flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                        解析結果の表示 (Deobfuscated Output)
+                    </h2>
+                    <div class="flex gap-2">
+                        <button id="btn-copy-input" class="px-2.5 py-1 text-xs bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-400 hover:text-emerald-300 rounded font-mono transition-colors border border-emerald-800/50" title="多重に難読化されている場合に、結果を入力欄に移してさらに解析します">
+                            結果を入力へ転送
+                        </button>
+                        <button id="btn-copy" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50">
+                            コピー
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800">
+                    <textarea id="output-code" class="hidden"></textarea>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer / Control Panel -->
+        <section class="bg-slate-900 border-t border-slate-800 p-4 grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
+            <!-- Execution Controls -->
+            <div class="flex flex-col justify-center gap-2">
+                <button id="btn-run" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold font-mono rounded-lg shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                    </svg>
+                    動的フック実行
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-stop" class="py-1.5 px-2 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 rounded font-mono text-[11px] border border-slate-700/50 hover:border-rose-900/50 transition-all">
+                        停止/リセット
+                    </button>
+                    <button id="btn-beautify" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono text-[11px] border border-slate-700/50 transition-all">
+                        整形のみ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Console Log -->
+            <div class="md:col-span-3 flex flex-col gap-1 min-h-0">
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-500">
+                    <span>CONSOLE LOG</span>
+                    <button id="btn-clear-log" class="hover:text-slate-300 transition-colors">ログクリア</button>
+                </div>
+                <div id="console-log" class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs h-28 overflow-y-auto flex flex-col gap-0.5">
+                    <div class="text-slate-600">待機中。難読化コードを貼り付けて「動的フック実行」をクリックしてください。</div>
+                </div>
+            </div>
+        </section>
     </div>
-</header>
 
-<div class="main-container">
-    <div class="window-panel">
-        <div class="window-header"><span><i class="bi bi-file-earmark-code me-2"></i>Input Source</span></div>
-        <div class="editor-container"><textarea id="input-editor"></textarea></div>
-    </div>
-    <div class="window-panel">
-        <div class="window-header"><span><i class="bi bi-file-earmark-check me-2"></i>Deobfuscated Output</span>
-            <button class="icon-btn" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
-        </div>
-        <div class="editor-container"><textarea id="output-editor"></textarea></div>
-    </div>
-</div>
+    <!-- CodeMirror & Beautify Libraries via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify.min.js"></script>
 
-<div class="log-section">
-    <div class="log-header"><span><i class="bi bi-terminal me-2"></i>Execution Terminal</span>
-        <button class="icon-btn" id="btn-clear-log"><i class="bi bi-trash"></i> Clear</button>
-    </div>
-    <div class="log-content" id="log-content"></div>
-</div>
+    <script>
+        // CodeMirror エディタ初期化
+        const inputEditor = CodeMirror.fromTextArea(document.getElementById('input-code'), {
+            lineNumbers: true,
+            mode: 'javascript',
+            theme: 'material-darker',
+            lineWrapping: true
+        });
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+        const outputEditor = CodeMirror.fromTextArea(document.getElementById('output-code'), {
+            lineNumbers: true,
+            mode: 'javascript',
+            theme: 'material-darker',
+            lineWrapping: true
+        });
 
-<script>
-    const cmInput = CodeMirror.fromTextArea(document.getElementById('input-editor'), { mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true });
-    const cmOutput = CodeMirror.fromTextArea(document.getElementById('output-editor'), { mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true });
-    const logContent = document.getElementById('log-content');
-
-    function log(msg, type = 'info') {
-        const entry = document.createElement('div');
-        entry.className = `log-msg ${type}`;
-        const time = new Date().toLocaleTimeString();
-        entry.innerHTML = `<span style="color: #6b6f75; margin-right: 6px;">[${time}]</span> ${msg}`;
-        logContent.appendChild(entry);
-        logContent.scrollTop = logContent.scrollHeight;
-    }
-
-    document.getElementById('btn-clear').onclick = () => { cmInput.setValue(''); cmOutput.setValue(''); logContent.innerHTML=''; };
-    document.getElementById('btn-clear-log').onclick = () => logContent.innerHTML='';
-    document.getElementById('btn-copy').onclick = () => navigator.clipboard.writeText(cmOutput.getValue()).then(() => log('Copied!', 'success'));
-
-    function formatCode(code) {
-        try { return js_beautify(code, { indent_size: 4, space_in_empty_paren: false, preserve_newlines: false, jslint_happy: true, brace_style: "collapse" }); } 
-        catch (e) { return code; }
-    }
-
-    function finalizeCode(code) {
-        try {
-            const cleanupPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        BlockStatement(path) {
-                            let stopIndex = -1;
-                            const body = path.get('body');
-                            for (let i = 0; i < body.length; i++) {
-                                const stmt = body[i];
-                                if (stmt.isReturnStatement() || stmt.isThrowStatement() || stmt.isBreakStatement() || stmt.isContinueStatement()) { stopIndex = i; break; }
-                            }
-                            if (stopIndex !== -1) {
-                                for (let i = stopIndex + 1; i < body.length; i++) { body[i].remove(); } 
-                            }
-                        },
-                        EmptyStatement(path) { if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) path.remove(); }
-                    }
-                };
-            };
-            const minified = Babel.transform(code, { ast: false, code: true, comments: false, compact: true, generatorOpts: { jsescOption: { minimal: true } }, plugins: [cleanupPlugin] });
-            return formatCode(minified.code);
-        } catch (e) { return formatCode(code); }
-    }
-
-    function runPrepasses(code) {
-        let changed = false;
-        try {
-            const unsequencePlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        VariableDeclaration(path) {
-                            if (path.parentPath.isForStatement() || path.parentPath.isForInStatement() || path.parentPath.isForOfStatement()) return;
-                            if (path.node.declarations.length > 1) {
-                                path.replaceWithMultiple(path.node.declarations.map(decl => t.variableDeclaration(path.node.kind, [t.cloneNode(decl, true)])));
-                                changed = true;
-                            }
-                        },
-                        ExpressionStatement(path) {
-                            if (t.isSequenceExpression(path.node.expression)) {
-                                const exprs = path.node.expression.expressions;
-                                path.replaceWithMultiple(exprs.map(e => t.expressionStatement(t.cloneNode(e, true))));
-                                changed = true;
-                            }
-                        }
-                    }
-                };
-            };
-            let pass = 0; while(pass < 5) { changed = false; code = Babel.transform(code, { ast: false, code: true, plugins: [unsequencePlugin] }).code; if (!changed) break; pass++; }
-        } catch(e) {}
-
-        try {
-            const inlineAliasesPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        VariableDeclarator(path) {
-                            if (t.isIdentifier(path.node.id) && t.isIdentifier(path.node.init)) {
-                                const targetBinding = path.scope.getBinding(path.node.init.name);
-                                if (targetBinding && targetBinding.constant) {
-                                    const binding = path.scope.getBinding(path.node.id.name);
-                                    if (binding && binding.constant) {
-                                        binding.referencePaths.forEach(ref => ref.replaceWith(t.identifier(path.node.init.name)));
-                                        const parent = path.parentPath; path.remove();
-                                        if (parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
-                                        changed = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-            };
-            let pass = 0; while(pass < 3) { changed = false; code = Babel.transform(code, { ast: false, code: true, plugins: [inlineAliasesPlugin] }).code; if (!changed) break; pass++; }
-        } catch(e) {}
-        return code;
-    }
-
-    function decodeStringsAST(rawCode) {
-        let code = runPrepasses(rawCode);
-        let replacedCount = 0; let foldedCount = 0; let inlinedCount = 0; let dceRemoved = 0;
-        
-        let ast;
-        try { ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; } 
-        catch(e) { log("AST parse failed", "error"); return { code: rawCode, changed: false }; }
-
-        let setupCode = "";
-        const sideEffectsList = ['document', 'window', 'alert', 'fetch', 'XMLHttpRequest', 'console', 'setTimeout', 'setInterval', 'require', 'process'];
-
-        const findSetupPlugin = function({ types: t }) {
-            return {
-                visitor: {
-                    Program(path) {
-                        path.get('body').forEach(stmtPath => {
-                            const node = stmtPath.node;
-                            let isSafeDecl = false;
-                            
-                            if (t.isFunctionDeclaration(node) || t.isVariableDeclaration(node)) {
-                                let hasSideEffect = false;
-                                stmtPath.traverse({ Identifier(p) { if (sideEffectsList.includes(p.node.name)) { hasSideEffect = true; p.stop(); } } });
-                                if (!hasSideEffect) isSafeDecl = true;
-                            }
-                            
-                            let isRotation = false;
-                            if (t.isExpressionStatement(node)) {
-                                let isIIFE = false; const expr = node.expression;
-                                if (t.isCallExpression(expr) && (t.isFunctionExpression(expr.callee) || t.isArrowFunctionExpression(expr.callee))) isIIFE = true;
-                                else if (t.isUnaryExpression(expr) && t.isCallExpression(expr.argument) && (t.isFunctionExpression(expr.argument.callee) || t.isArrowFunctionExpression(expr.argument.callee))) isIIFE = true;
-                                
-                                if (isIIFE) {
-                                    let hasWhile = false, hasPushShift = false, hasSideEffect = false;
-                                    stmtPath.traverse({
-                                        WhileStatement() { hasWhile = true; },
-                                        Identifier(p) { 
-                                            if (['push', 'shift'].includes(p.node.name)) hasPushShift = true; 
-                                            if (sideEffectsList.includes(p.node.name)) { hasSideEffect = true; p.stop(); }
-                                        }
-                                    });
-                                    if (hasWhile && hasPushShift && !hasSideEffect) isRotation = true;
-                                }
-                            }
-                            if (isSafeDecl || isRotation) { setupCode += code.substring(node.start, node.end) + "\n"; if (isRotation) node._isRotation = true; }
-                        });
-                    }
-                }
-            };
-        };
-        Babel.transformFromAst(ast, code, { ast: true, code: false, plugins: [findSetupPlugin] });
-
-        try {
-            const sandboxPrepPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                            const limitCheck = t.ifStatement(t.binaryExpression(">", t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_ast_loop")), t.binaryExpression("+", t.logicalExpression("||", t.memberExpression(t.identifier("window"), t.identifier("_ast_loop")), t.numericLiteral(0)), t.numericLiteral(1))), t.numericLiteral(5000)), t.breakStatement());
-                            t.isBlockStatement(path.node.body) ? path.node.body.body.unshift(limitCheck) : (path.node.body = t.blockStatement([limitCheck, path.node.body]));
-                        }
-                    }
-                };
-            };
-            setupCode = Babel.transform(setupCode, { ast: false, code: true, plugins: [sandboxPrepPlugin] }).code;
-        } catch(e) {}
-
-        const iframe = document.createElement('iframe'); iframe.style.display = 'none'; document.body.appendChild(iframe);
-        const win = iframe.contentWindow;
-        try {
-            win.console = new Proxy({}, { get: () => () => {} });
-            ['alert', 'prompt', 'confirm', 'open', 'print', 'fetch'].forEach(m => win[m] = ()=>{});
-            win.setTimeout = ()=>{return 0;}; win.setInterval = ()=>{return 0;};
-            if (setupCode.trim()) { const script = win.document.createElement('script'); script.textContent = setupCode; win.document.body.appendChild(script); }
-        } catch (e) { log("Sandbox Error: " + e.message, "error"); }
-
-        const deobfuscatePlugin = function({ types: t }) {
-            const isLiteralLike = (arg) => {
-                if (!arg) return false;
-                if (t.isLiteral(arg)) return true;
-                if (t.isUnaryExpression(arg) && t.isLiteral(arg.argument)) return true;
-                if (t.isArrayExpression(arg)) return arg.elements.every(e => e === null || isLiteralLike(e));
-                if (t.isObjectExpression(arg)) return arg.properties.every(p => t.isObjectProperty(p) && isLiteralLike(p.value));
-                return false;
-            };
-            
-            const toLiteralNode = (value) => {
-                if (typeof value === 'string') return t.stringLiteral(value);
-                if (typeof value === 'number' && Number.isFinite(value)) return value < 0 ? t.unaryExpression('-', t.numericLiteral(Math.abs(value))) : t.numericLiteral(value);
-                if (typeof value === 'boolean') return t.booleanLiteral(value);
-                if (value === null) return t.nullLiteral(); 
-                
-                // 配列およびオブジェクトはJSON経由でAST化（循環参照によるスタックオーバーフローを防御）
-                if (typeof value === 'object' && value !== null) {
-                    try { return Babel.transform(`(${JSON.stringify(value)})`, {ast: true, code: false}).ast.program.body[0].expression; } 
-                    catch(e) { return null; }
-                }
-                return null;
-            };
-
-            const tryEval = (path) => {
-                try {
-                    const exprCode = Babel.transformFromAst(t.program([t.expressionStatement(t.cloneNode(path.node, true))]), "", { ast: false, code: true }).code;
-                    const res = win.eval(exprCode);
-                    if (res !== undefined && typeof res !== 'function' && typeof res !== 'symbol') {
-                        const literalNode = toLiteralNode(res);
-                        if (literalNode) { path.replaceWith(literalNode); replacedCount++; return true; }
-                    }
-                } catch (e) {}
-                return false;
-            };
-
-            return {
-                visitor: {
-                    IfStatement: {
-                        exit(path) {
-                            const test = path.get('test');
-                            const evaluated = test.evaluate();
-                            if (evaluated.confident) {
-                                const replacement = evaluated.value ? path.node.consequent : path.node.alternate;
-                                if (replacement) { 
-                                    const cloned = t.cloneNode(replacement, true); 
-                                    t.isBlockStatement(cloned) ? path.replaceWithMultiple(cloned.body) : path.replaceWith(cloned); 
-                                } 
-                                else { path.remove(); }
-                                foldedCount++;
-                            }
-                        }
-                    },
-                    MemberExpression: {
-                        exit(path) {
-                            if (path.node.computed && t.isStringLiteral(path.node.property)) {
-                                const propName = path.node.property.value;
-                                if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(propName)) { path.node.computed = false; path.node.property = t.identifier(propName); foldedCount++; }
-                            }
-                        }
-                    },
-                    ExpressionStatement(path) { if (path.node._isRotation) { path.remove(); dceRemoved++; } },
-                    CallExpression: {
-                        exit(path) {
-                            // 無限の自己参照ラッパー展開をガードする（Max Call Stack Size Exceededの元凶対策）
-                            if (path.node._inlined > 10) return;
-
-                            if (t.isIdentifier(path.node.callee)) {
-                                const funcName = path.node.callee.name;
-                                const binding = path.scope.getBinding(funcName);
-                                if (binding && binding.path.isFunctionDeclaration()) {
-                                    const funcNode = binding.path.node;
-                                    if (funcNode.body.body.length === 1 && t.isReturnStatement(funcNode.body.body[0]) && funcNode.body.body[0].argument) {
-                                        const params = funcNode.params; const args = path.node.arguments;
-                                        if (params.every(p => t.isIdentifier(p))) {
-                                            const argMap = {}; params.forEach((p, i) => { argMap[p.name] = args[i] || t.identifier("undefined"); });
-                                            const inlined = t.cloneNode(funcNode.body.body[0].argument, true);
-                                            
-                                            // インライン展開のネスト階層をマーキング
-                                            inlined._inlined = (path.node._inlined || 0) + 1;
-
-                                            if (t.isIdentifier(inlined) && argMap[inlined.name]) {
-                                                const cl = t.cloneNode(argMap[inlined.name], true);
-                                                cl._inlined = inlined._inlined;
-                                                path.replaceWith(cl);
-                                            } else { 
-                                                path.replaceWith(inlined); 
-                                                path.traverse({ 
-                                                    Identifier(ip) { 
-                                                        if (ip.isReferencedIdentifier() && argMap[ip.node.name]) {
-                                                            const cl = t.cloneNode(argMap[ip.node.name], true);
-                                                            cl._inlined = inlined._inlined;
-                                                            ip.replaceWith(cl);
-                                                            ip.skip();
-                                                        }
-                                                    } 
-                                                }); 
-                                            }
-                                            inlinedCount++; return;
-                                        }
-                                    }
-                                }
-                                if (path.node.arguments.every(isLiteralLike)) tryEval(path);
-                            } else if (t.isMemberExpression(path.node.callee)) {
-                                if (!path.node.arguments.every(isLiteralLike)) return; 
-                                let safe = true;
-                                path.traverse({ Identifier(p) { if (sideEffectsList.includes(p.node.name) || ['eval', 'Function'].includes(p.node.name)) { safe = false; p.stop(); } } });
-                                if (safe) tryEval(path);
-                            }
-                        }
-                    },
-                    "WhileStatement|ForStatement"(path) {
-                        const body = path.node.body;
-                        let switchStmt = t.isBlockStatement(body) ? body.body.find(n => t.isSwitchStatement(n)) : (t.isSwitchStatement(body) ? body : null);
-                        if (!switchStmt || !t.isIdentifier(switchStmt.discriminant)) return;
-                        const stateVarName = switchStmt.discriminant.name; const binding = path.scope.getBinding(stateVarName);
-                        if (!binding) return;
-                        
-                        let initVal = binding.path.isVariableDeclarator() ? binding.path.node.init : (binding.path.isAssignmentExpression() ? binding.path.node.right : null);
-                        if (initVal && (t.isNumericLiteral(initVal) || t.isStringLiteral(initVal))) {
-                            let currentState = initVal.value; const caseMap = {};
-                            switchStmt.cases.forEach(c => {
-                                if (c.test && (t.isNumericLiteral(c.test) || t.isStringLiteral(c.test))) {
-                                    const stmts = c.consequent.filter(stmt => !t.isBreakStatement(stmt) && !t.isContinueStatement(stmt));
-                                    let nextState = null; const cleanStmts = [];
-                                    for (const stmt of stmts) {
-                                        if (t.isExpressionStatement(stmt) && t.isAssignmentExpression(stmt.expression) && t.isIdentifier(stmt.expression.left, { name: stateVarName })) {
-                                            if (t.isNumericLiteral(stmt.expression.right) || t.isStringLiteral(stmt.expression.right)) { nextState = stmt.expression.right.value; continue; }
-                                        }
-                                        cleanStmts.push(stmt);
-                                    }
-                                    caseMap[c.test.value] = { stmts: cleanStmts, nextState };
-                                }
-                            });
-                            const unflattened = []; let curr = currentState; let visited = new Set();
-                            while (curr !== null && curr !== undefined && caseMap[curr] && !visited.has(curr)) {
-                                visited.add(curr); 
-                                unflattened.push(...caseMap[curr].stmts.map(stmt => t.cloneNode(stmt, true))); 
-                                curr = caseMap[curr].nextState;
-                            }
-                            if (unflattened.length > 0) { path.replaceWith(t.blockStatement(unflattened)); foldedCount++; }
-                        }
-                    },
-                    BinaryExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } },
-                    UnaryExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } },
-                    LogicalExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } }
-                }
-            };
-        };
-
-        let transformedCode = code;
-        try { transformedCode = Babel.transformFromAst(ast, code, { ast: false, code: true, generatorOpts: { jsescOption: { minimal: true } }, plugins: [deobfuscatePlugin] }).code; } 
-        catch(e) { log("Deobfuscate AST Error: " + e.message, "error"); }
-
-        const dcePlugin = function({ types: t }) {
-            return {
-                visitor: {
-                    "VariableDeclarator|FunctionDeclaration"(path) {
-                        if (path.removed || !path.node.id || !t.isIdentifier(path.node.id)) return;
-                        const binding = path.scope.getBinding(path.node.id.name);
-                        if (binding && !binding.referenced) {
-                            if (path.isVariableDeclarator()) {
-                                const parent = path.parentPath; path.remove();
-                                if (parent && parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
-                            } else path.remove();
-                            dceRemoved++;
-                        }
-                    }
-                }
-            };
-        };
-
-        let passCount = 0; let changedDCE = true;
-        while(changedDCE && passCount < 10) {
-            changedDCE = false;
-            try {
-                const preDceCode = transformedCode;
-                transformedCode = Babel.transform(transformedCode, { ast: false, code: true, parserOpts: { allowReturnOutsideFunction: true }, plugins: [dcePlugin] }).code;
-                if (preDceCode !== transformedCode) changedDCE = true;
-            } catch(e) { break; }
-            passCount++;
+        // HTMLエスケープヘルパー
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
         }
 
-        document.body.removeChild(iframe);
-        const totalChanged = replacedCount > 0 || foldedCount > 0 || inlinedCount > 0 || dceRemoved > 0;
-        if (totalChanged) log(`AST Deobf: Evaluated ${replacedCount} calls, Inlined ${inlinedCount} wrappers, Unflattened ${foldedCount} paths, Removed ${dceRemoved} dead nodes`, "success");
-        return { code: transformedCode, changed: totalChanged };
-    }
-
-    function dynamicUnpack(code) {
-        return new Promise((resolve) => {
-            let safeCode = code;
+        // ログ出力
+        function log(message, type = 'info') {
+            const consoleEl = document.getElementById('console-log');
+            const item = document.createElement('div');
+            item.className = 'py-0.5 flex items-start gap-2 text-[11px]';
             
-            try {
-                const loopLimitPlugin = function({ types: t }) {
-                    return {
-                        visitor: {
-                            "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                                const limitCheck = t.ifStatement(
-                                    t.binaryExpression(">", 
-                                        t.assignmentExpression("=", 
-                                            t.memberExpression(t.identifier("window"), t.identifier("_dyn_loop")), 
-                                            t.binaryExpression("+", 
-                                                t.logicalExpression("||", t.memberExpression(t.identifier("window"), t.identifier("_dyn_loop")), t.numericLiteral(0)), 
-                                                t.numericLiteral(1)
-                                            )
-                                        ),
-                                        t.numericLiteral(5000)
-                                    ),
-                                    t.breakStatement()
-                                );
-                                if (t.isBlockStatement(path.node.body)) { path.node.body.body.unshift(limitCheck); } 
-                                else { path.node.body = t.blockStatement([limitCheck, path.node.body]); }
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            let color = 'text-slate-500';
+            let prefix = '⚙️ [SYSTEM]';
+            
+            if (type === 'success') { color = 'text-emerald-400'; prefix = '✅ [SUCCESS]'; }
+            else if (type === 'error') { color = 'text-rose-400'; prefix = '❌ [ERROR]'; }
+            else if (type === 'warn') { color = 'text-amber-400'; prefix = '⚠️ [WARN]'; }
+            else if (type === 'info') { color = 'text-sky-400'; prefix = 'ℹ️ [INFO]'; }
+            
+            item.innerHTML = `
+                <span class="text-slate-600 font-mono shrink-0">[${timeStr}]</span>
+                <span class="${color} font-bold shrink-0 font-mono">${prefix}</span>
+                <span class="text-slate-300 font-mono break-all">${escapeHTML(message)}</span>
+            `;
+            
+            consoleEl.appendChild(item);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        let sandboxIframe = null;
+
+        // 解析実行
+        function runSandbox() {
+            const code = inputEditor.getValue().trim();
+            if (!code) {
+                log('実行対象のコードが入力されていません。', 'warn');
+                return;
+            }
+
+            stopSandbox(); // 以前のインスタンスを削除
+
+            log('フック用サンドボックス（iframe）の構築を開始します...', 'info');
+
+            sandboxIframe = document.createElement('iframe');
+            sandboxIframe.id = 'sandbox-iframe';
+            sandboxIframe.style.display = 'none';
+            // セキュリティ確保のための sandbox 属性（scriptのみ許可）
+            sandboxIframe.setAttribute('sandbox', 'allow-scripts');
+            document.body.appendChild(sandboxIframe);
+
+            const iframeDoc = sandboxIframe.contentWindow.document;
+
+            // フックスクリプト生成
+            const hookScript = `
+                <script>
+                    (function() {
+                        const originalFunction = window.Function;
+                        const originalEval = window.eval;
+                        const originalSetInterval = window.setInterval;
+                        const originalSetTimeout = window.setTimeout;
+
+                        function sendToParent(type, payload) {
+                            window.parent.postMessage({ type: type, ...payload }, '*');
+                        }
+
+                        // コード捕獲ハンドラ
+                        function handleCapturedCode(rawCode) {
+                            if (typeof rawCode === 'string' && rawCode.trim().length > 0) {
+                                // debugger ステートメントの除去
+                                const bypassedCode = rawCode.replace(/\\bdebugger\\b/g, '/* debugger bypassed */');
+                                sendToParent('deobfuscated', { code: bypassedCode });
                             }
                         }
-                    };
-                };
-                safeCode = Babel.transform(code, { ast: false, code: true, plugins: [loopLimitPlugin] }).code;
-            } catch (e) { log("Dynamic Unpack loop protector failed", "warning"); }
 
-            const iframe = document.createElement('iframe'); iframe.style.display = 'none'; document.body.appendChild(iframe);
-            let payloads = [];
-            try {
-                const win = iframe.contentWindow; win.console = new Proxy({}, { get: () => () => {} });
-                win.alert = ()=>{}; win.fetch = ()=>{}; win.onerror = () => true; win.prompt = ()=>{}; win.confirm = ()=>{};
-                const checkAndPush = (p) => { if (typeof p === 'string' && p.trim().length > 10) payloads.push(p); };
-                
-                const origEval = win.eval; win.eval = function(p) { checkAndPush(p); try { return origEval.apply(this, arguments); } catch(e){} };
-                win.document.write = function(p) { checkAndPush(p); };
-                win.setTimeout = () => 0; 
-                win.setInterval = () => 0;
-                
-                const script = win.document.createElement('script'); script.textContent = safeCode; win.document.body.appendChild(script);
-            } catch (err) {}
-            
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                if (payloads.length > 0) {
-                    payloads.sort((a, b) => b.length - a.length);
-                    for (const p of payloads) {
-                        try { Babel.transform(p, { ast: false, code: false }); log(`Packer removed (${p.length} bytes)`, "success"); return resolve(p); } catch(e) {}
-                    }
-                }
-                resolve(code);
-            }, 300);
-        });
-    }
-
-    function antiMinify(code) {
-        try {
-            const antiMinifyPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        Scopable(path) {
-                            const bindings = path.scope.bindings;
-                            for (const name in bindings) {
-                                if (name.length <= 2 && !['e', '_', '$'].includes(name) && /^[a-zA-Z]+$/.test(name)) {
-                                    const binding = bindings[name];
-                                    let prefix = binding.kind === "param" ? "_arg" : (binding.path.isFunction() ? "_func" : "_var");
-                                    path.scope.rename(name, path.scope.generateUid(prefix));
+                        // 1. Function / Constructor フック
+                        const functionHook = function(...args) {
+                            if (args.length > 0) {
+                                const lastArg = args[args.length - 1];
+                                handleCapturedCode(lastArg);
+                                if (typeof lastArg === 'string') {
+                                    args[args.length - 1] = lastArg.replace(/\\bdebugger\\b/g, '/* debugger bypassed */');
                                 }
                             }
-                        }
-                    }
-                };
-            };
-            return Babel.transform(code, { ast: false, code: true, parserOpts: { allowReturnOutsideFunction: true }, plugins: [antiMinifyPlugin] }).code;
-        } catch(e) { return code; }
-    }
+                            return originalFunction.apply(this, args);
+                        };
 
-    async function deepAutoSingle(code) {
-        let currentCode = code; let prevOverallCode = ""; let globalIter = 0;
-        
-        while (currentCode !== prevOverallCode && globalIter < 3) {
-            prevOverallCode = currentCode; globalIter++;
-            log(`[Pass ${globalIter}] Sandbox Dynamic Unpack...`, "warning");
-            currentCode = await dynamicUnpack(currentCode);
-            
-            let prevAstCode = ""; let astIter = 0;
-            while (currentCode !== prevAstCode && astIter < 5) {
-                prevAstCode = currentCode;
-                const result = decodeStringsAST(currentCode);
-                currentCode = result.code;
-                if (!result.changed) break;
-                astIter++;
+                        Object.defineProperty(Function.prototype, 'constructor', {
+                            value: functionHook,
+                            writable: true,
+                            configurable: true
+                        });
+                        window.Function = functionHook;
+
+                        // 2. eval フック
+                        window.eval = function(code) {
+                            handleCapturedCode(code);
+                            if (typeof code === 'string') {
+                                return originalEval(code.replace(/\\bdebugger\\b/g, '/* debugger bypassed */'));
+                            }
+                            return originalEval(code);
+                        };
+
+                        // 3. タイマー経由の debugger 回避
+                        window.setInterval = function(fn, delay, ...args) {
+                            const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+                            if (fnStr.includes('debugger')) {
+                                sendToParent('log', { message: 'setInterval による無限デバッガーループを破棄しました。', level: 'warn' });
+                                return 0;
+                            }
+                            return originalSetInterval(fn, delay, ...args);
+                        };
+
+                        window.setTimeout = function(fn, delay, ...args) {
+                            const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
+                            if (fnStr.includes('debugger')) {
+                                sendToParent('log', { message: 'setTimeout による無限デバッガーループを破棄しました。', level: 'warn' });
+                                return 0;
+                            }
+                            return originalSetTimeout(fn, delay, ...args);
+                        };
+
+                        // 4. RegExp による整合性チェック (自己改変・フォーマット崩れ検証) 回避
+                        const originalRegExp = window.RegExp;
+                        window.RegExp = function(pattern, flags) {
+                            if (typeof pattern === 'string' && (pattern.includes('toString') || pattern.includes('(((.+)+)+)+$') || pattern.includes('filter'))) {
+                                sendToParent('log', { message: 'RegExp 整合性テストを検出。ダミー条件に変更します。', level: 'warn' });
+                                return originalRegExp('.*', flags);
+                            }
+                            return originalRegExp(pattern, flags);
+                        };
+
+                        // 5. String.prototype.search による整合性回避
+                        const originalSearch = String.prototype.search;
+                        String.prototype.search = function(regexp) {
+                            const searchStr = typeof regexp === 'string' ? regexp : (regexp instanceof RegExp ? regexp.source : '');
+                            if (searchStr.includes('(((.+)+)+)+$') || searchStr.includes('sys_2sdwcvh1x5m')) {
+                                sendToParent('log', { message: 'search() による検証チェックをバイパスしました。', level: 'warn' });
+                                return 0; // マッチに成功した状態を擬装
+                            }
+                            return originalSearch.apply(this, arguments);
+                        };
+
+                        // 6. RegExp.prototype.test による整合性回避
+                        const originalTest = RegExp.prototype.test;
+                        RegExp.prototype.test = function(str) {
+                            if (this.toString().includes('(((.+)+)+)+$')) {
+                                sendToParent('log', { message: 'test() による検証チェックをバイパスしました。', level: 'warn' });
+                                return true; // 合格扱いにする
+                            }
+                            return originalTest.apply(this, arguments);
+                        };
+
+                        window.addEventListener('error', function(e) {
+                            sendToParent('log', { message: 'サンドボックス内で例外を検知: ' + e.message, level: 'error' });
+                        });
+
+                        sendToParent('log', { message: '安全機構をマウントしました。実行フェーズへ移行します。', level: 'info' });
+                    })();
+                <\/script>
+            `;
+
+            // ユーザー難読化コード実行
+            const userScript = `
+                <script>
+                    try {
+                        ${code}
+                        sendToParent('log', { message: 'コード実行処理が終了しました。', level: 'info' });
+                    } catch (err) {
+                        sendToParent('log', { message: '実行中断（エラー発生）: ' + err.message, level: 'error' });
+                    }
+                <\/script>
+            `;
+
+            iframeDoc.open();
+            iframeDoc.write(hookScript + userScript);
+            iframeDoc.close();
+        }
+
+        // サンドボックス停止
+        function stopSandbox() {
+            if (sandboxIframe) {
+                sandboxIframe.remove();
+                sandboxIframe = null;
+                log('稼働中のサンドボックス（iframe）をリセットしました。', 'info');
             }
         }
+
+        // コード整形
+        function formatOutput() {
+            const code = outputEditor.getValue();
+            if (!code) {
+                log('整形対象のコードが出力エリアにありません。', 'warn');
+                return;
+            }
+            try {
+                const formatted = js_beautify(code, {
+                    indent_size: 2,
+                    space_in_empty_paren: true,
+                    unescape_strings: true
+                });
+                outputEditor.setValue(formatted);
+                log('コードの整形を実行しました。', 'success');
+            } catch (err) {
+                log('コードの整形中にエラーが発生しました。', 'error');
+            }
+        }
+
+        // 親ウィンドウ側メッセージ受信リスナー
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (!data) return;
+
+            if (data.type === 'deobfuscated') {
+                log('難読化解除されたコードがインターセプトされました！', 'success');
+                outputEditor.setValue(data.code);
+                formatOutput(); // 自動的に整形
+            } else if (data.type === 'log') {
+                log(data.message, data.level);
+            }
+        });
+
+        // ボタンのクリックイベント群
+        document.getElementById('btn-run').addEventListener('click', runSandbox);
+        document.getElementById('btn-stop').addEventListener('click', stopSandbox);
         
-        log(`Final Pass: Anti-Minify...`, "info");
-        currentCode = antiMinify(currentCode);
-        return finalizeCode(currentCode);
-    }
+        document.getElementById('btn-beautify').addEventListener('click', formatOutput);
 
-    // Event Listeners
-    document.getElementById('btn-auto').onclick = async (e) => {
-        e.preventDefault(); const code = cmInput.getValue(); if (!code) return;
-        log("==== Deep Auto Deobfuscation Start ====", "success"); cmOutput.setValue("Processing...");
-        const result = await deepAutoSingle(code);
-        cmOutput.setValue(result);
-        log(`==== Deep Auto Deobfuscation Done ====`, "success");
-    };
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            inputEditor.setValue('');
+            log('入力エリアをクリアしました。', 'info');
+        });
 
-    document.getElementById('btn-dynamic').onclick = async (e) => { e.preventDefault(); const c = cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(await dynamicUnpack(c))); };
-    document.getElementById('btn-strings').onclick = (e) => { e.preventDefault(); const c = cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(decodeStringsAST(c).code)); };
-    document.getElementById('btn-antiminify').onclick = (e) => { e.preventDefault(); const c = cmOutput.getValue() || cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(antiMinify(c))); };
-</script>
+        document.getElementById('btn-copy').addEventListener('click', () => {
+            const code = outputEditor.getValue();
+            if (code) {
+                navigator.clipboard.writeText(code);
+                log('出力コードをクリップボードにコピーしました。', 'success');
+            } else {
+                log('コピーするコードがありません。', 'warn');
+            }
+        });
+
+        document.getElementById('btn-copy-input').addEventListener('click', () => {
+            const code = outputEditor.getValue();
+            if (code) {
+                inputEditor.setValue(code);
+                outputEditor.setValue('');
+                log('結果を入力エリアに転送しました。追加の難読化レイヤーを解除できます。', 'info');
+            } else {
+                log('転送するコードがありません。', 'warn');
+            }
+        });
+
+        document.getElementById('btn-clear-log').addEventListener('click', () => {
+            const consoleEl = document.getElementById('console-log');
+            consoleEl.innerHTML = '<div class="text-slate-600">ログをクリアしました。</div>';
+        });
+    </script>
 </body>
 </html>
