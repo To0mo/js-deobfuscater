@@ -1,295 +1,125 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="ja" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal JS Deobfuscator Studio Ultimate</title>
+    <title>Universal JS Deobfuscator Studio Ultimate V3</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css">
     
     <style>
         html, body {
-            margin: 0;
-            padding: 12px;
-            height: 100vh;
-            background-color: #17181a; 
-            color: #d4d4d4; 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-sizing: border-box;
+            margin: 0; padding: 12px; height: 100vh; background-color: #17181a; color: #d4d4d4; 
+            font-family: 'Inter', sans-serif; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box;
         }
         * { box-sizing: border-box; }
         
-        header { 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            margin-bottom: 12px; 
-            border-bottom: 1px solid #2d2f33; 
-            padding-bottom: 10px; 
-            flex-shrink: 0; 
-        }
-        h1 { 
-            margin: 0; 
-            font-size: 18px; 
-            font-weight: 600; 
-            color: #e4e4e4;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .toolbar { 
-            display: flex; 
-            gap: 8px; 
-            align-items: center;
-            margin-left: auto;
-        }
+        header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; border-bottom: 1px solid #2d2f33; padding-bottom: 10px; flex-shrink: 0; }
+        h1 { margin: 0; font-size: 18px; font-weight: 600; color: #e4e4e4; display: flex; align-items: center; gap: 8px; }
+        .toolbar { display: flex; gap: 8px; align-items: center; margin-left: auto; }
 
-        .btn-custom { background-color: #2b2d31; color: #dbdee1; border: 1px solid #3d4047; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-custom:hover { background-color: #383a40; color: #ffffff; border-color: #5c6168; }
-        
         .btn-success-custom { background-color: #238636; color: #fff; border: 1px solid #2ea043; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
         .btn-success-custom:hover { background-color: #2ea043; }
-        
         .btn-danger-custom { background-color: transparent; color: #f85149; border: 1px solid #f85149; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
         .btn-danger-custom:hover { background-color: #f85149; color: #fff; }
 
-        .dropdown-menu {
-            border-radius: 6px;
-            padding: 6px 0;
-            background-color: #25262a;
-            border: 1px solid #3d4047;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            font-size: 13px;
-        }
-        .dropdown-item { padding: 8px 16px; color: #d4d4d4; transition: background 0.2s; }
+        .dropdown-menu { background-color: #25262a; border: 1px solid #3d4047; font-size: 13px; }
+        .dropdown-item { padding: 8px 16px; color: #d4d4d4; }
         .dropdown-item:hover { background-color: #313338; color: #ffffff; }
         
-        .main-container { 
-            display: flex; 
-            gap: 12px; 
-            flex: 1; 
-            min-height: 0; 
-            flex-direction: row; 
-        }
-        
-        .window-panel { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background-color: #1e1f22; 
-            border: 1px solid #2d2f33; 
-            border-radius: 6px; 
-            overflow: hidden;
-            min-height: 0; 
-        }
-        
-        .window-header { 
-            padding: 6px 12px; 
-            background-color: #25262a; 
-            font-size: 12px; 
-            font-weight: 600; 
-            border-bottom: 1px solid #2d2f33; 
-            color: #e4e4e4; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-shrink: 0;
-        }
-        
+        .main-container { display: flex; gap: 12px; flex: 1; min-height: 0; flex-direction: row; }
+        .window-panel { flex: 1; display: flex; flex-direction: column; background-color: #1e1f22; border: 1px solid #2d2f33; border-radius: 6px; overflow: hidden; min-height: 0; }
+        .window-header { padding: 6px 12px; background-color: #25262a; font-size: 12px; font-weight: 600; border-bottom: 1px solid #2d2f33; color: #e4e4e4; display: flex; justify-content: space-between; align-items: center; }
         .editor-container { flex: 1; position: relative; }
         
-        .CodeMirror {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            height: 100% !important;
-            font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5;
-        }
+        .CodeMirror { position: absolute; top: 0; left: 0; right: 0; bottom: 0; height: 100% !important; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5; }
         .cm-s-darcula.CodeMirror { background-color: #1e1f22; color: #e4e4e4; }
         .cm-s-darcula .CodeMirror-gutters { background-color: #1e1f22; border-right: 1px solid #2d2f33; }
-        .cm-s-darcula .CodeMirror-linenumber { color: #6b6f75; padding-left: 6px; }
-        .cm-s-darcula .CodeMirror-cursor { border-left: 2px solid #e4e4e4; }
-        .CodeMirror-selected { background: #32445a !important; }
-        .CodeMirror-line::selection, .CodeMirror-line > span::selection { background: #32445a !important; }
-        .CodeMirror-placeholder { color: #5c6168 !important; }
         
-        .log-section { 
-            height: 150px; flex-shrink: 0; background-color: #1e1f22; 
-            border: 1px solid #2d2f33; border-radius: 6px; margin-top: 12px; display: flex; flex-direction: column; 
-        }
-        .log-header { 
-            padding: 6px 12px; font-size: 12px; font-weight: 600; color: #b9bbbe; 
-            border-bottom: 1px solid #2d2f33; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; 
-        }
-        .log-content { 
-            flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; 
-            font-size: 12px; line-height: 1.5; margin: 0; color: #b9bbbe; 
-        }
-        
+        .log-section { height: 150px; flex-shrink: 0; background-color: #1e1f22; border: 1px solid #2d2f33; border-radius: 6px; margin-top: 12px; display: flex; flex-direction: column; }
+        .log-header { padding: 6px 12px; font-size: 12px; font-weight: 600; color: #b9bbbe; border-bottom: 1px solid #2d2f33; display: flex; justify-content: space-between; align-items: center; }
+        .log-content { flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; line-height: 1.5; color: #b9bbbe; }
         .log-msg { border-bottom: 1px dashed rgba(45, 47, 51, 0.8); padding: 4px 0; word-break: break-all; }
-        .log-msg.info { color: #58a6ff; } 
-        .log-msg.success { color: #3fb950; }
-        .log-msg.error { color: #f85149; } 
-        .log-msg.warning { color: #d29922; } 
+        .log-msg.info { color: #58a6ff; } .log-msg.success { color: #3fb950; } .log-msg.error { color: #f85149; } .log-msg.warning { color: #d29922; }
         
-        .icon-btn { 
-            background: transparent; color: #b9bbbe; border: none; padding: 4px 8px; cursor: pointer; 
-            border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 12px; gap: 4px;
-        }
+        .icon-btn { background: transparent; color: #b9bbbe; border: none; padding: 4px 8px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; font-size: 12px; gap: 4px; }
         .icon-btn:hover { background: rgba(255,255,255,0.1); color: #e4e4e4; }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3d4047; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #5c6168; }
-
-        @media (max-width: 768px) {
-            body { height: auto; display: block; overflow-y: auto; }
-            header { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .toolbar { margin-left: 0; width: 100%; flex-wrap: wrap; }
-            .main-container { flex-direction: column; display: flex; height: auto; }
-            .window-panel { min-height: 300px; flex: none; }
-            .log-section { flex-shrink: 0; height: 200px; margin-bottom: 20px; }
-        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1><i class="bi bi-fire" style="color: #f85149; font-size: 20px;"></i> Universal JS Deobfuscator <span style="color: #6b6f75; font-size: 12px;">ULTIMATE</span></h1>
+    <h1><i class="bi bi-fire" style="color: #f85149; font-size: 20px;"></i> Universal JS Deobfuscator <span style="color: #6b6f75; font-size: 12px;">ULTIMATE V3</span></h1>
     <div class="toolbar">
         <div class="dropdown">
-            <button class="btn-success-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-tools"></i> Actions
-            </button>
+            <button class="btn-success-custom dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-tools"></i> Actions</button>
             <ul class="dropdown-menu dropdown-menu-dark shadow-lg">
                 <li><a class="dropdown-item fw-bold" href="#" id="btn-auto"><i class="bi bi-magic text-success me-2"></i> Deep Auto Deobfuscate</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="#" id="btn-dynamic"><i class="bi bi-play-circle text-info me-2"></i> Sandbox Unpack</a></li>
                 <li><a class="dropdown-item" href="#" id="btn-strings"><i class="bi bi-fonts text-warning me-2"></i> Decode Strings AST</a></li>
                 <li><a class="dropdown-item" href="#" id="btn-antiminify"><i class="bi bi-person-lines-fill me-2" style="color: #b392f0;"></i> Anti-Minify</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" id="btn-format"><i class="bi bi-code-slash text-secondary me-2"></i> Force Beautify</a></li>
             </ul>
         </div>
-        <button class="btn-danger-custom" id="btn-clear" title="Clear All"><i class="bi bi-trash"></i> Clear</button>
+        <button class="btn-danger-custom" id="btn-clear"><i class="bi bi-trash"></i> Clear</button>
     </div>
 </header>
 
 <div class="main-container">
     <div class="window-panel">
-        <div class="window-header">
-            <span><i class="bi bi-file-earmark-code me-2"></i>Input Source</span>
-        </div>
-        <div class="editor-container">
-            <textarea id="input-editor"></textarea>
-        </div>
+        <div class="window-header"><span><i class="bi bi-file-earmark-code me-2"></i>Input Source</span></div>
+        <div class="editor-container"><textarea id="input-editor"></textarea></div>
     </div>
-    
     <div class="window-panel">
-        <div class="window-header">
-            <span><i class="bi bi-file-earmark-check me-2"></i>Deobfuscated Output</span>
-            <button class="icon-btn" id="btn-copy" title="Copy Code"><i class="bi bi-clipboard"></i> Copy</button>
+        <div class="window-header"><span><i class="bi bi-file-earmark-check me-2"></i>Deobfuscated Output</span>
+            <button class="icon-btn" id="btn-copy"><i class="bi bi-clipboard"></i> Copy</button>
         </div>
-        <div class="editor-container">
-            <textarea id="output-editor"></textarea>
-        </div>
+        <div class="editor-container"><textarea id="output-editor"></textarea></div>
     </div>
 </div>
 
 <div class="log-section">
-    <div class="log-header">
-        <span><i class="bi bi-terminal me-2"></i>Execution Terminal</span>
+    <div class="log-header"><span><i class="bi bi-terminal me-2"></i>Execution Terminal</span>
         <button class="icon-btn" id="btn-clear-log"><i class="bi bi-trash"></i> Clear</button>
     </div>
     <div class="log-content" id="log-content"></div>
 </div>
 
-<!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Babel Standalone -->
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- js-beautify -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.9/beautify.min.js"></script>
-
-<!-- CodeMirror Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/display/placeholder.min.js"></script>
 
 <script>
-    // --- Editor Initialization ---
-    const cmInput = CodeMirror.fromTextArea(document.getElementById('input-editor'), {
-        mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true, matchBrackets: true, indentUnit: 4,
-        placeholder: "// Paste obfuscator.io or any obfuscated JS code here..."
-    });
-    
-    const cmOutput = CodeMirror.fromTextArea(document.getElementById('output-editor'), {
-        mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true, matchBrackets: true, readOnly: false, indentUnit: 4,
-        placeholder: "// Decoded and beautified output will appear here..."
-    });
-
+    const cmInput = CodeMirror.fromTextArea(document.getElementById('input-editor'), { mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true });
+    const cmOutput = CodeMirror.fromTextArea(document.getElementById('output-editor'), { mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true });
     const logContent = document.getElementById('log-content');
 
-    function log(message, type = 'info') {
+    function log(msg, type = 'info') {
         const entry = document.createElement('div');
         entry.className = `log-msg ${type}`;
-        const timestamp = new Date().toLocaleTimeString();
-        let icon = 'bi-info-circle';
-        if (type === 'success') icon = 'bi-check-circle';
-        if (type === 'error') icon = 'bi-x-circle';
-        if (type === 'warning') icon = 'bi-exclamation-triangle';
-        
-        entry.innerHTML = `<span style="color: #6b6f75; margin-right: 6px;">[${timestamp}]</span><i class="bi ${icon} me-1"></i> ${message}`;
+        const time = new Date().toLocaleTimeString();
+        entry.innerHTML = `<span style="color: #6b6f75; margin-right: 6px;">[${time}]</span> ${msg}`;
         logContent.appendChild(entry);
         logContent.scrollTop = logContent.scrollHeight;
     }
 
-    document.getElementById('btn-clear').addEventListener('click', () => {
-        cmInput.setValue(''); cmOutput.setValue(''); logContent.innerHTML = ''; log('Workspace cleared.', 'info');
-    });
-    
-    document.getElementById('btn-clear-log').addEventListener('click', () => logContent.innerHTML = '');
-    
-    document.getElementById('btn-copy').addEventListener('click', () => {
-        navigator.clipboard.writeText(cmOutput.getValue()).then(() => {
-            const btn = document.getElementById('btn-copy');
-            btn.innerHTML = '<i class="bi bi-check2" style="color:var(--success);"></i> Copied';
-            setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy'; }, 1500);
-            log('Output copied to clipboard.', 'success');
-        }).catch(err => log('Failed to copy: ' + err, 'error'));
-    });
-
-    // --- Core Utilities ---
+    document.getElementById('btn-clear').onclick = () => { cmInput.setValue(''); cmOutput.setValue(''); logContent.innerHTML=''; };
+    document.getElementById('btn-clear-log').onclick = () => logContent.innerHTML='';
+    document.getElementById('btn-copy').onclick = () => navigator.clipboard.writeText(cmOutput.getValue()).then(() => log('Copied!', 'success'));
 
     function formatCode(code) {
-        if (typeof js_beautify !== 'function') return code;
-        try {
-            return js_beautify(code, {
-                indent_size: 4, 
-                space_in_empty_paren: false, 
-                preserve_newlines: false, // Force completely ignoring original bad newlines
-                max_preserve_newlines: 0, 
-                jslint_happy: true, 
-                brace_style: "collapse", 
-                space_before_conditional: true
-            });
-        } catch (e) {
-            log("Format Error: " + e.message, "warning");
-            return code;
-        }
+        try { return js_beautify(code, { indent_size: 4, space_in_empty_paren: false, preserve_newlines: false, jslint_happy: true, brace_style: "collapse" }); } 
+        catch (e) { return code; }
     }
 
     function finalizeCode(code) {
@@ -299,85 +129,64 @@
                     visitor: {
                         BlockStatement(path) {
                             let stopIndex = -1;
-                            for (let i = 0; i < path.node.body.length; i++) {
-                                const stmt = path.node.body[i];
-                                if (t.isReturnStatement(stmt) || t.isThrowStatement(stmt) || t.isBreakStatement(stmt) || t.isContinueStatement(stmt)) {
-                                    stopIndex = i; break;
-                                }
+                            const body = path.get('body');
+                            for (let i = 0; i < body.length; i++) {
+                                const stmt = body[i];
+                                if (stmt.isReturnStatement() || stmt.isThrowStatement() || stmt.isBreakStatement() || stmt.isContinueStatement()) { stopIndex = i; break; }
                             }
-                            if (stopIndex !== -1 && stopIndex < path.node.body.length - 1) {
-                                path.node.body.splice(stopIndex + 1);
-                            }
-                        },
-                        ReturnStatement(path) {
-                            if (!path.node.argument) {
-                                const parent = path.parentPath;
-                                if (parent.isBlockStatement() && parent.node.body[parent.node.body.length - 1] === path.node) {
-                                    if (parent.parentPath.isFunction()) path.remove();
-                                }
+                            if (stopIndex !== -1) {
+                                for (let i = stopIndex + 1; i < body.length; i++) { body[i].remove(); } 
                             }
                         },
-                        BlockStatement: {
-                            exit(path) {
-                                if (path.parentPath.isBlockStatement()) {
-                                    path.replaceWithMultiple(path.node.body);
-                                }
+                        EmptyStatement(path) { if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) path.remove(); }
+                    }
+                };
+            };
+            const minified = Babel.transform(code, { ast: false, code: true, comments: false, compact: true, generatorOpts: { jsescOption: { minimal: true } }, plugins: [cleanupPlugin] });
+            return formatCode(minified.code);
+        } catch (e) { return formatCode(code); }
+    }
+
+    function runPrepasses(code) {
+        let changed = false;
+        try {
+            const unsequencePlugin = function({ types: t }) {
+                return {
+                    visitor: {
+                        VariableDeclaration(path) {
+                            if (path.parentPath.isForStatement() || path.parentPath.isForInStatement() || path.parentPath.isForOfStatement()) return;
+                            if (path.node.declarations.length > 1) {
+                                path.replaceWithMultiple(path.node.declarations.map(decl => t.variableDeclaration(path.node.kind, [t.cloneNode(decl, true)])));
+                                changed = true;
                             }
                         },
-                        EmptyStatement(path) {
-                            if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) path.remove();
+                        ExpressionStatement(path) {
+                            if (t.isSequenceExpression(path.node.expression)) {
+                                const exprs = path.node.expression.expressions;
+                                path.replaceWithMultiple(exprs.map(e => t.expressionStatement(t.cloneNode(e, true))));
+                                changed = true;
+                            }
                         }
                     }
                 };
             };
-            
-            const minified = Babel.transform(code, {
-                ast: false, code: true, comments: false, compact: true,
-                generatorOpts: { jsescOption: { minimal: true } },
-                plugins: [cleanupPlugin]
-            });
-            
-            return formatCode(minified.code);
-        } catch (e) {
-            return formatCode(code); 
-        }
-    }
+            let pass = 0; while(pass < 5) { changed = false; code = Babel.transform(code, { ast: false, code: true, plugins: [unsequencePlugin] }).code; if (!changed) break; pass++; }
+        } catch(e) {}
 
-    document.getElementById('btn-format').addEventListener('click', (e) => {
-        e.preventDefault();
-        const code = cmOutput.getValue() || cmInput.getValue();
-        if (!code) return;
-        cmOutput.setValue(finalizeCode(code));
-        log("Code force-beautified.", "success");
-    });
-
-    function antiMinify(code) {
         try {
-            const ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-            const antiMinifyPlugin = function({ types: t }) {
+            const inlineAliasesPlugin = function({ types: t }) {
                 return {
                     visitor: {
-                        Scopable(path) {
-                            const bindings = path.scope.bindings;
-                            for (const name in bindings) {
-                                if (name.length <= 2 && !['e', '_', '$'].includes(name) && /^[a-zA-Z]+$/.test(name)) {
-                                    const binding = bindings[name];
-                                    let prefix = "_var";
-                                    if (binding.kind === "param") prefix = "_arg";
-                                    else if (binding.path.isFunctionDeclaration() || binding.path.isFunctionExpression()) prefix = "_func";
-                                    else if (binding.path.isClassDeclaration()) prefix = "_class";
-                                    else if (binding.kind === "const") prefix = "_const";
-                                    const newName = path.scope.generateUid(prefix);
-                                    path.scope.rename(name, newName);
-                                }
-                            }
-                        },
-                        UnaryExpression(path) {
-                            if (['!', '+', '-', '~'].includes(path.node.operator)) {
-                                const arg = path.node.argument;
-                                if (t.isCallExpression(arg) && (t.isFunctionExpression(arg.callee) || t.isArrowFunctionExpression(arg.callee))) {
-                                    if (path.parentPath.isExpressionStatement() || path.parentPath.isSequenceExpression()) {
-                                        path.replaceWith(arg);
+                        VariableDeclarator(path) {
+                            if (t.isIdentifier(path.node.id) && t.isIdentifier(path.node.init)) {
+                                const targetBinding = path.scope.getBinding(path.node.init.name);
+                                if (targetBinding && targetBinding.constant) {
+                                    const binding = path.scope.getBinding(path.node.id.name);
+                                    if (binding && binding.constant) {
+                                        binding.referencePaths.forEach(ref => ref.replaceWith(t.identifier(path.node.init.name)));
+                                        const parent = path.parentPath; path.remove();
+                                        if (parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
+                                        changed = true;
                                     }
                                 }
                             }
@@ -385,144 +194,88 @@
                     }
                 };
             };
-            const transformed = Babel.transformFromAst(ast, code, {
-                generatorOpts: { retainLines: false, jsescOption: { minimal: true } }, plugins:[antiMinifyPlugin]
-            });
-            return transformed.code;
-        } catch(e) {
-            log("Anti-Minify Error: " + e.message, "warning");
-            return code;
-        }
+            let pass = 0; while(pass < 3) { changed = false; code = Babel.transform(code, { ast: false, code: true, plugins: [inlineAliasesPlugin] }).code; if (!changed) break; pass++; }
+        } catch(e) {}
+        return code;
     }
 
-    document.getElementById('btn-antiminify').addEventListener('click', (e) => {
-        e.preventDefault();
-        const code = cmOutput.getValue() || cmInput.getValue();
-        if (!code) return;
-        cmOutput.setValue(finalizeCode(antiMinify(code)));
-        log("Anti-Minify applied.", "success");
-    });
+    function decodeStringsAST(rawCode) {
+        let code = runPrepasses(rawCode);
+        let replacedCount = 0; let foldedCount = 0; let inlinedCount = 0; let dceRemoved = 0;
+        
+        let ast;
+        try { ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; } 
+        catch(e) { log("AST parse failed", "error"); return { code: rawCode, changed: false }; }
 
-    function dynamicUnpack(code) {
-        return new Promise((resolve) => {
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            let payloads =[];
-            try {
-                const win = iframe.contentWindow;
-                win.console = { log: ()=>{}, warn: ()=>{}, error: ()=>{}, info: ()=>{} };
-                win.onerror = () => true; 
-                function checkAndPush(payload) {
-                    if (typeof payload === 'string' && payload.trim().length > 0) {
-                        try { Babel.transform(payload, { ast: true, code: false }); payloads.push(payload); } catch(e) {}
+        let setupCode = "";
+        const sideEffectsList = ['document', 'window', 'alert', 'fetch', 'XMLHttpRequest', 'console', 'setTimeout', 'setInterval', 'require', 'process'];
+
+        const findSetupPlugin = function({ types: t }) {
+            return {
+                visitor: {
+                    Program(path) {
+                        path.get('body').forEach(stmtPath => {
+                            const node = stmtPath.node;
+                            let isSafeDecl = false;
+                            
+                            if (t.isFunctionDeclaration(node) || t.isVariableDeclaration(node)) {
+                                let hasSideEffect = false;
+                                stmtPath.traverse({ Identifier(p) { if (sideEffectsList.includes(p.node.name)) { hasSideEffect = true; p.stop(); } } });
+                                if (!hasSideEffect) isSafeDecl = true;
+                            }
+                            
+                            let isRotation = false;
+                            if (t.isExpressionStatement(node)) {
+                                let isIIFE = false; const expr = node.expression;
+                                if (t.isCallExpression(expr) && (t.isFunctionExpression(expr.callee) || t.isArrowFunctionExpression(expr.callee))) isIIFE = true;
+                                else if (t.isUnaryExpression(expr) && t.isCallExpression(expr.argument) && (t.isFunctionExpression(expr.argument.callee) || t.isArrowFunctionExpression(expr.argument.callee))) isIIFE = true;
+                                
+                                if (isIIFE) {
+                                    let hasWhile = false, hasPushShift = false, hasSideEffect = false;
+                                    stmtPath.traverse({
+                                        WhileStatement() { hasWhile = true; },
+                                        Identifier(p) { 
+                                            if (['push', 'shift'].includes(p.node.name)) hasPushShift = true; 
+                                            if (sideEffectsList.includes(p.node.name)) { hasSideEffect = true; p.stop(); }
+                                        }
+                                    });
+                                    if (hasWhile && hasPushShift && !hasSideEffect) isRotation = true;
+                                }
+                            }
+                            if (isSafeDecl || isRotation) { setupCode += code.substring(node.start, node.end) + "\n"; if (isRotation) node._isRotation = true; }
+                        });
                     }
                 }
-                const origEval = win.eval; win.eval = function(payload) { checkAndPush(payload); try { return origEval.apply(this, arguments); } catch(e){} };
-                const origFunction = win.Function;
-                const hookedFunction = function(...args) { if (args.length > 0) checkAndPush(args[args.length - 1]); try { return origFunction.apply(this, args); } catch(e){} };
-                win.Function = hookedFunction; win.Function.prototype = origFunction.prototype; win.Function.prototype.constructor = hookedFunction;
-                const origWrite = win.document.write; win.document.write = function(payload) { checkAndPush(payload); return origWrite.apply(this, arguments); };
-                win.setTimeout = (cb) => { if(typeof cb === 'function') cb(); return 0; }; win.setInterval = () => 0;
-                const script = win.document.createElement('script'); script.textContent = code; win.document.body.appendChild(script);
-            } catch (err) { log(`Sandbox execution error: ${err.message}`, "warning"); }
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-                if (payloads.length > 0) {
-                    payloads.sort((a, b) => b.length - a.length);
-                    log(`Packer removed (${payloads[0].length} bytes)`, "success");
-                    resolve(payloads[0]);
-                } else resolve(code);
-            }, 250);
-        });
-    }
+            };
+        };
+        Babel.transformFromAst(ast, code, { ast: true, code: false, plugins: [findSetupPlugin] });
 
-    document.getElementById('btn-dynamic').addEventListener('click', async (e) => {
-        e.preventDefault();
-        const code = cmInput.getValue();
-        if (!code) return;
-        log(`Dynamic Unpack: Running sandbox...`, "info");
-        const unpacked = await dynamicUnpack(code);
-        cmOutput.setValue(finalizeCode(unpacked));
-    });
-
-    // =========================================================================
-    // THE ULTIMATE AST DEOBFUSCATOR ENGINE
-    // =========================================================================
-    function decodeStringsAST(code) {
-        let ast;
-        try { 
-            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; 
-        } catch(e) { 
-            log("AST parsing failed: " + e.message, "error"); return { code, changed: false }; 
-        }
-
-        let replacedCount = 0; let foldedCount = 0; let inlinedCount = 0;
-
-        // Step 1: Detect Setup Code & Obfuscator.io Rotation IIFEs
-        // (Must use exact source code slicing to bypass Anti-Formatting!)
-        let setupCode = "";
-        let rotationNodeStarts = new Set();
-        
-        ast.program.body.forEach(node => {
-            const isDecl = node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration';
-            
-            let isRotation = false;
-            if (node.type === 'ExpressionStatement' || node.type === 'SequenceExpression') {
-                let hasWhile=false, hasPushShift=false, hasTryCatch=false;
-                Babel.traverse(node, {
-                    noScope: true,
-                    WhileStatement() { hasWhile = true; },
-                    TryStatement() { hasTryCatch = true; },
-                    Identifier(p) { if (p.node.name === 'push' || p.node.name === 'shift') hasPushShift = true; }
-                });
-                if (hasWhile && hasTryCatch && hasPushShift) isRotation = true;
-            }
-
-            if (isDecl || isRotation) {
-                // Exact string extraction preserves formatting perfectly.
-                setupCode += code.substring(node.start, node.end) + "\n";
-                if (isRotation) rotationNodeStarts.add(node.start);
-            }
-        });
-
-        // Step 2: Full native sandbox setup
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        const win = iframe.contentWindow;
-        
         try {
-            // Mock APIs to prevent malicious behavior or hangs
+            const sandboxPrepPlugin = function({ types: t }) {
+                return {
+                    visitor: {
+                        "WhileStatement|ForStatement|DoWhileStatement"(path) {
+                            const limitCheck = t.ifStatement(t.binaryExpression(">", t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier("_ast_loop")), t.binaryExpression("+", t.logicalExpression("||", t.memberExpression(t.identifier("window"), t.identifier("_ast_loop")), t.numericLiteral(0)), t.numericLiteral(1))), t.numericLiteral(5000)), t.breakStatement());
+                            t.isBlockStatement(path.node.body) ? path.node.body.body.unshift(limitCheck) : (path.node.body = t.blockStatement([limitCheck, path.node.body]));
+                        }
+                    }
+                };
+            };
+            setupCode = Babel.transform(setupCode, { ast: false, code: true, plugins: [sandboxPrepPlugin] }).code;
+        } catch(e) {}
+
+        const iframe = document.createElement('iframe'); iframe.style.display = 'none'; document.body.appendChild(iframe);
+        const win = iframe.contentWindow;
+        try {
             win.console = new Proxy({}, { get: () => () => {} });
             ['alert', 'prompt', 'confirm', 'open', 'print', 'fetch'].forEach(m => win[m] = ()=>{});
-            win.XMLHttpRequest = function(){};
             win.setTimeout = ()=>{return 0;}; win.setInterval = ()=>{return 0;};
-            
-            // Defeat obfuscator.io debugger traps
-            const origFunction = win.Function;
-            win.Function = function(...args) {
-                if (args.some(a => typeof a === 'string' && a.includes('debugger'))) {
-                    return function(){};
-                }
-                return origFunction.apply(this, args);
-            };
-            win.Function.prototype = origFunction.prototype;
+            if (setupCode.trim()) { const script = win.document.createElement('script'); script.textContent = setupCode; win.document.body.appendChild(script); }
+        } catch (e) { log("Sandbox Error: " + e.message, "error"); }
 
-            if (setupCode.trim()) {
-                const script = win.document.createElement('script');
-                script.textContent = setupCode;
-                win.document.body.appendChild(script);
-            }
-        } catch (e) {
-            log("Sandbox setup error: " + e.message, "error");
-        }
-
-        // Step 3: Main Transformation Plugin
         const deobfuscatePlugin = function({ types: t }) {
-            const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console']);
-            
             const isLiteralLike = (arg) => {
+                if (!arg) return false;
                 if (t.isLiteral(arg)) return true;
                 if (t.isUnaryExpression(arg) && t.isLiteral(arg.argument)) return true;
                 if (t.isArrayExpression(arg)) return arg.elements.every(e => e === null || isLiteralLike(e));
@@ -532,10 +285,12 @@
             
             const toLiteralNode = (value) => {
                 if (typeof value === 'string') return t.stringLiteral(value);
-                if (typeof value === 'number' && Number.isFinite(value)) return t.numericLiteral(value);
+                if (typeof value === 'number' && Number.isFinite(value)) return value < 0 ? t.unaryExpression('-', t.numericLiteral(Math.abs(value))) : t.numericLiteral(value);
                 if (typeof value === 'boolean') return t.booleanLiteral(value);
                 if (value === null) return t.nullLiteral(); 
-                if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+                
+                // 配列およびオブジェクトはJSON経由でAST化（循環参照によるスタックオーバーフローを防御）
+                if (typeof value === 'object' && value !== null) {
                     try { return Babel.transform(`(${JSON.stringify(value)})`, {ast: true, code: false}).ast.program.body[0].expression; } 
                     catch(e) { return null; }
                 }
@@ -548,104 +303,92 @@
                     const res = win.eval(exprCode);
                     if (res !== undefined && typeof res !== 'function' && typeof res !== 'symbol') {
                         const literalNode = toLiteralNode(res);
-                        if (literalNode) { 
-                            path.replaceWith(literalNode); 
-                            replacedCount++; 
-                            return true; 
-                        }
+                        if (literalNode) { path.replaceWith(literalNode); replacedCount++; return true; }
                     }
                 } catch (e) {}
                 return false;
             };
 
-            const hasSideEffects = (funcName, scope) => {
-                const binding = scope.getBinding(funcName);
-                if (!binding || !binding.path.isFunction()) return false;
-                let sideEffect = false;
-                binding.path.traverse({
-                    Identifier(p) {
-                        if (['console', 'document', 'window', 'alert', 'fetch', 'XMLHttpRequest', 'setTimeout', 'setInterval'].includes(p.node.name)) {
-                            sideEffect = true; p.stop();
-                        }
-                    }
-                });
-                return sideEffect;
-            };
-
             return {
                 visitor: {
+                    IfStatement: {
+                        exit(path) {
+                            const test = path.get('test');
+                            const evaluated = test.evaluate();
+                            if (evaluated.confident) {
+                                const replacement = evaluated.value ? path.node.consequent : path.node.alternate;
+                                if (replacement) { 
+                                    const cloned = t.cloneNode(replacement, true); 
+                                    t.isBlockStatement(cloned) ? path.replaceWithMultiple(cloned.body) : path.replaceWith(cloned); 
+                                } 
+                                else { path.remove(); }
+                                foldedCount++;
+                            }
+                        }
+                    },
+                    MemberExpression: {
+                        exit(path) {
+                            if (path.node.computed && t.isStringLiteral(path.node.property)) {
+                                const propName = path.node.property.value;
+                                if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(propName)) { path.node.computed = false; path.node.property = t.identifier(propName); foldedCount++; }
+                            }
+                        }
+                    },
+                    ExpressionStatement(path) { if (path.node._isRotation) { path.remove(); dceRemoved++; } },
                     CallExpression: {
                         exit(path) {
+                            // 無限の自己参照ラッパー展開をガードする（Max Call Stack Size Exceededの元凶対策）
+                            if (path.node._inlined > 10) return;
+
                             if (t.isIdentifier(path.node.callee)) {
                                 const funcName = path.node.callee.name;
-                                if (blockedCallees.has(funcName)) return;
-                                
-                                // Feature A: Inline Wrapper Functions (_0x55e1e1 etc.)
                                 const binding = path.scope.getBinding(funcName);
                                 if (binding && binding.path.isFunctionDeclaration()) {
                                     const funcNode = binding.path.node;
                                     if (funcNode.body.body.length === 1 && t.isReturnStatement(funcNode.body.body[0]) && funcNode.body.body[0].argument) {
-                                        const params = funcNode.params;
-                                        const args = path.node.arguments;
+                                        const params = funcNode.params; const args = path.node.arguments;
                                         if (params.every(p => t.isIdentifier(p))) {
-                                            const argMap = {};
-                                            params.forEach((p, i) => { argMap[p.name] = args[i] || t.identifier("undefined"); });
-                                            
+                                            const argMap = {}; params.forEach((p, i) => { argMap[p.name] = args[i] || t.identifier("undefined"); });
                                             const inlined = t.cloneNode(funcNode.body.body[0].argument, true);
-                                            let canInline = true;
-                                            Babel.traverse(inlined, { noScope: true, Function() { canInline = false; } });
+                                            
+                                            // インライン展開のネスト階層をマーキング
+                                            inlined._inlined = (path.node._inlined || 0) + 1;
 
-                                            if (canInline) {
-                                                if (t.isIdentifier(inlined) && argMap[inlined.name]) {
-                                                    path.replaceWith(t.cloneNode(argMap[inlined.name], true));
-                                                } else {
-                                                    path.replaceWith(inlined);
-                                                    path.traverse({
-                                                        Identifier(ip) {
-                                                            if (ip.isReferencedIdentifier() && argMap[ip.node.name]) {
-                                                                ip.replaceWith(t.cloneNode(argMap[ip.node.name], true));
-                                                            }
+                                            if (t.isIdentifier(inlined) && argMap[inlined.name]) {
+                                                const cl = t.cloneNode(argMap[inlined.name], true);
+                                                cl._inlined = inlined._inlined;
+                                                path.replaceWith(cl);
+                                            } else { 
+                                                path.replaceWith(inlined); 
+                                                path.traverse({ 
+                                                    Identifier(ip) { 
+                                                        if (ip.isReferencedIdentifier() && argMap[ip.node.name]) {
+                                                            const cl = t.cloneNode(argMap[ip.node.name], true);
+                                                            cl._inlined = inlined._inlined;
+                                                            ip.replaceWith(cl);
+                                                            ip.skip();
                                                         }
-                                                    });
-                                                }
-                                                inlinedCount++; return;
+                                                    } 
+                                                }); 
                                             }
+                                            inlinedCount++; return;
                                         }
                                     }
                                 }
-
-                                // Feature B: Evaluate String Decoder Functions
-                                if (hasSideEffects(funcName, path.scope)) return;
-                                if (path.node.arguments.every(isLiteralLike)) {
-                                    tryEval(path);
-                                }
+                                if (path.node.arguments.every(isLiteralLike)) tryEval(path);
                             } else if (t.isMemberExpression(path.node.callee)) {
-                                // Feature C: Evaluate Array Methods (e.g. .filter().join())
+                                if (!path.node.arguments.every(isLiteralLike)) return; 
                                 let safe = true;
-                                path.traverse({ 
-                                    Identifier(p) { 
-                                        if (['window', 'document', 'eval', 'XMLHttpRequest', 'fetch', 'setTimeout', 'setInterval', 'Function', 'console'].includes(p.node.name)) { 
-                                            safe = false; p.stop(); 
-                                        } 
-                                    },
-                                    CallExpression(p) {
-                                        if (t.isIdentifier(p.node.callee) && blockedCallees.has(p.node.callee.name)) {
-                                            safe = false; p.stop();
-                                        }
-                                    }
-                                });
+                                path.traverse({ Identifier(p) { if (sideEffectsList.includes(p.node.name) || ['eval', 'Function'].includes(p.node.name)) { safe = false; p.stop(); } } });
                                 if (safe) tryEval(path);
                             }
                         }
                     },
-                    // Control Flow Unflattening (Switch inside Loop)
                     "WhileStatement|ForStatement"(path) {
                         const body = path.node.body;
                         let switchStmt = t.isBlockStatement(body) ? body.body.find(n => t.isSwitchStatement(n)) : (t.isSwitchStatement(body) ? body : null);
                         if (!switchStmt || !t.isIdentifier(switchStmt.discriminant)) return;
-                        
-                        const stateVarName = switchStmt.discriminant.name;
-                        const binding = path.scope.getBinding(stateVarName);
+                        const stateVarName = switchStmt.discriminant.name; const binding = path.scope.getBinding(stateVarName);
                         if (!binding) return;
                         
                         let initVal = binding.path.isVariableDeclarator() ? binding.path.node.init : (binding.path.isAssignmentExpression() ? binding.path.node.right : null);
@@ -661,42 +404,18 @@
                                         }
                                         cleanStmts.push(stmt);
                                     }
-                                    caseMap[c.test.value] = { stmts: cleanStmts, nextState: nextState };
+                                    caseMap[c.test.value] = { stmts: cleanStmts, nextState };
                                 }
                             });
                             const unflattened = []; let curr = currentState; let visited = new Set();
                             while (curr !== null && curr !== undefined && caseMap[curr] && !visited.has(curr)) {
-                                visited.add(curr); unflattened.push(...caseMap[curr].stmts); curr = caseMap[curr].nextState;
+                                visited.add(curr); 
+                                unflattened.push(...caseMap[curr].stmts.map(stmt => t.cloneNode(stmt, true))); 
+                                curr = caseMap[curr].nextState;
                             }
                             if (unflattened.length > 0) { path.replaceWith(t.blockStatement(unflattened)); foldedCount++; }
                         }
                     },
-                    // Normalize console["log"] -> console.log
-                    MemberExpression: {
-                        exit(path) {
-                            if (path.node.computed && t.isStringLiteral(path.node.property)) {
-                                const propName = path.node.property.value;
-                                if (/^[a-zA-Z_$][0-9a-zA-Z_$]*$/.test(propName)) { 
-                                    path.node.computed = false; path.node.property = t.identifier(propName); foldedCount++; 
-                                }
-                            }
-                        }
-                    },
-                    IfStatement: {
-                        exit(path) {
-                            const test = path.get('test');
-                            const evaluated = test.evaluate();
-                            if (evaluated.confident) {
-                                const replacement = evaluated.value ? path.node.consequent : path.node.alternate;
-                                if (replacement) { t.isBlockStatement(replacement) ? path.replaceWithMultiple(replacement.body) : path.replaceWith(replacement); } else { path.remove(); }
-                                foldedCount++;
-                            }
-                        }
-                    },
-                    TryStatement: {
-                        exit(path) { if (!path.node.block.body.some(stmt => !t.isEmptyStatement(stmt))) { path.remove(); foldedCount++; } }
-                    },
-                    EmptyStatement(path) { if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) path.remove(); },
                     BinaryExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } },
                     UnaryExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } },
                     LogicalExpression: { exit(path) { const ev = path.evaluate(); if (ev.confident && ev.value !== undefined) { const lit = toLiteralNode(ev.value); if (lit) { path.replaceWith(lit); foldedCount++; } } } }
@@ -705,42 +424,20 @@
         };
 
         let transformedCode = code;
-        try {
-            transformedCode = Babel.transformFromAst(ast, code, { 
-                ast: false, code: true, 
-                generatorOpts: { jsescOption: { minimal: true } }, 
-                plugins: [deobfuscatePlugin] 
-            }).code;
-        } catch(e) {
-            log("AST transform error: " + e.message, "error");
-        }
+        try { transformedCode = Babel.transformFromAst(ast, code, { ast: false, code: true, generatorOpts: { jsescOption: { minimal: true } }, plugins: [deobfuscatePlugin] }).code; } 
+        catch(e) { log("Deobfuscate AST Error: " + e.message, "error"); }
 
-        // Step 4: Powerful Explicit Dead Code Elimination (DCE)
-        let dceRemoved = 0;
         const dcePlugin = function({ types: t }) {
             return {
                 visitor: {
-                    // Force delete the Rotation IIFE we identified earlier
-                    "ExpressionStatement|SequenceExpression"(path) {
-                        if (rotationNodeStarts.has(path.node.start)) {
-                            path.remove();
-                            dceRemoved++;
-                        }
-                    },
                     "VariableDeclarator|FunctionDeclaration"(path) {
-                        if (path.removed) return;
-                        if (!path.node.id || !t.isIdentifier(path.node.id)) return;
-                        
+                        if (path.removed || !path.node.id || !t.isIdentifier(path.node.id)) return;
                         const binding = path.scope.getBinding(path.node.id.name);
-                        // Delete unreferenced declarations
                         if (binding && !binding.referenced) {
                             if (path.isVariableDeclarator()) {
-                                const parent = path.parentPath;
-                                path.remove();
+                                const parent = path.parentPath; path.remove();
                                 if (parent && parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
-                            } else {
-                                path.remove();
-                            }
+                            } else path.remove();
                             dceRemoved++;
                         }
                     }
@@ -748,47 +445,111 @@
             };
         };
 
-        // Domino DCE loop
-        let passCount = 0;
-        let changedDCE = true;
+        let passCount = 0; let changedDCE = true;
         while(changedDCE && passCount < 10) {
             changedDCE = false;
             try {
                 const preDceCode = transformedCode;
-                transformedCode = Babel.transform(transformedCode, { ast: false, code: true, plugins: [dcePlugin] }).code;
+                transformedCode = Babel.transform(transformedCode, { ast: false, code: true, parserOpts: { allowReturnOutsideFunction: true }, plugins: [dcePlugin] }).code;
                 if (preDceCode !== transformedCode) changedDCE = true;
             } catch(e) { break; }
             passCount++;
         }
 
         document.body.removeChild(iframe);
-
         const totalChanged = replacedCount > 0 || foldedCount > 0 || inlinedCount > 0 || dceRemoved > 0;
-        if (totalChanged) {
-            log(`AST Deobf: Evaluated ${replacedCount} calls, Inlined ${inlinedCount} wrappers, Unflattened ${foldedCount} paths, Removed ${dceRemoved} dead nodes`, "success");
-        }
-        
+        if (totalChanged) log(`AST Deobf: Evaluated ${replacedCount} calls, Inlined ${inlinedCount} wrappers, Unflattened ${foldedCount} paths, Removed ${dceRemoved} dead nodes`, "success");
         return { code: transformedCode, changed: totalChanged };
     }
 
-    document.getElementById('btn-strings').addEventListener('click', (e) => {
-        e.preventDefault();
-        const code = cmInput.getValue();
-        if (!code) return;
-        log(`Decoding AST & Unflattening...`, "info");
-        const result = decodeStringsAST(code);
-        cmOutput.setValue(finalizeCode(result.code));
-    });
+    function dynamicUnpack(code) {
+        return new Promise((resolve) => {
+            let safeCode = code;
+            
+            try {
+                const loopLimitPlugin = function({ types: t }) {
+                    return {
+                        visitor: {
+                            "WhileStatement|ForStatement|DoWhileStatement"(path) {
+                                const limitCheck = t.ifStatement(
+                                    t.binaryExpression(">", 
+                                        t.assignmentExpression("=", 
+                                            t.memberExpression(t.identifier("window"), t.identifier("_dyn_loop")), 
+                                            t.binaryExpression("+", 
+                                                t.logicalExpression("||", t.memberExpression(t.identifier("window"), t.identifier("_dyn_loop")), t.numericLiteral(0)), 
+                                                t.numericLiteral(1)
+                                            )
+                                        ),
+                                        t.numericLiteral(5000)
+                                    ),
+                                    t.breakStatement()
+                                );
+                                if (t.isBlockStatement(path.node.body)) { path.node.body.body.unshift(limitCheck); } 
+                                else { path.node.body = t.blockStatement([limitCheck, path.node.body]); }
+                            }
+                        }
+                    };
+                };
+                safeCode = Babel.transform(code, { ast: false, code: true, plugins: [loopLimitPlugin] }).code;
+            } catch (e) { log("Dynamic Unpack loop protector failed", "warning"); }
 
-    // --- Deep Auto Deobfuscation Engine ---
+            const iframe = document.createElement('iframe'); iframe.style.display = 'none'; document.body.appendChild(iframe);
+            let payloads = [];
+            try {
+                const win = iframe.contentWindow; win.console = new Proxy({}, { get: () => () => {} });
+                win.alert = ()=>{}; win.fetch = ()=>{}; win.onerror = () => true; win.prompt = ()=>{}; win.confirm = ()=>{};
+                const checkAndPush = (p) => { if (typeof p === 'string' && p.trim().length > 10) payloads.push(p); };
+                
+                const origEval = win.eval; win.eval = function(p) { checkAndPush(p); try { return origEval.apply(this, arguments); } catch(e){} };
+                win.document.write = function(p) { checkAndPush(p); };
+                win.setTimeout = () => 0; 
+                win.setInterval = () => 0;
+                
+                const script = win.document.createElement('script'); script.textContent = safeCode; win.document.body.appendChild(script);
+            } catch (err) {}
+            
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+                if (payloads.length > 0) {
+                    payloads.sort((a, b) => b.length - a.length);
+                    for (const p of payloads) {
+                        try { Babel.transform(p, { ast: false, code: false }); log(`Packer removed (${p.length} bytes)`, "success"); return resolve(p); } catch(e) {}
+                    }
+                }
+                resolve(code);
+            }, 300);
+        });
+    }
+
+    function antiMinify(code) {
+        try {
+            const antiMinifyPlugin = function({ types: t }) {
+                return {
+                    visitor: {
+                        Scopable(path) {
+                            const bindings = path.scope.bindings;
+                            for (const name in bindings) {
+                                if (name.length <= 2 && !['e', '_', '$'].includes(name) && /^[a-zA-Z]+$/.test(name)) {
+                                    const binding = bindings[name];
+                                    let prefix = binding.kind === "param" ? "_arg" : (binding.path.isFunction() ? "_func" : "_var");
+                                    path.scope.rename(name, path.scope.generateUid(prefix));
+                                }
+                            }
+                        }
+                    }
+                };
+            };
+            return Babel.transform(code, { ast: false, code: true, parserOpts: { allowReturnOutsideFunction: true }, plugins: [antiMinifyPlugin] }).code;
+        } catch(e) { return code; }
+    }
+
     async function deepAutoSingle(code) {
         let currentCode = code; let prevOverallCode = ""; let globalIter = 0;
         
         while (currentCode !== prevOverallCode && globalIter < 3) {
             prevOverallCode = currentCode; globalIter++;
             log(`[Pass ${globalIter}] Sandbox Dynamic Unpack...`, "warning");
-            const unpacked = await dynamicUnpack(currentCode);
-            if (unpacked !== currentCode) currentCode = unpacked;
+            currentCode = await dynamicUnpack(currentCode);
             
             let prevAstCode = ""; let astIter = 0;
             while (currentCode !== prevAstCode && astIter < 5) {
@@ -802,23 +563,21 @@
         
         log(`Final Pass: Anti-Minify...`, "info");
         currentCode = antiMinify(currentCode);
-        
-        log(`Final Pass: Cleanup & Force Beautify...`, "info");
-        return { code: finalizeCode(currentCode), passes: globalIter };
+        return finalizeCode(currentCode);
     }
 
-    document.getElementById('btn-auto').addEventListener('click', async (e) => {
-        e.preventDefault();
-        const code = cmInput.getValue();
-        if (!code) return;
-        log("==== Deep Auto Deobfuscation Start ====", "success");
-        cmOutput.setValue("Processing...");
-        
+    // Event Listeners
+    document.getElementById('btn-auto').onclick = async (e) => {
+        e.preventDefault(); const code = cmInput.getValue(); if (!code) return;
+        log("==== Deep Auto Deobfuscation Start ====", "success"); cmOutput.setValue("Processing...");
         const result = await deepAutoSingle(code);
-        cmOutput.setValue(result.code);
-        
-        log(`==== Deep Auto Deobfuscation Done (Passes: ${result.passes}) ====`, "success");
-    });
+        cmOutput.setValue(result);
+        log(`==== Deep Auto Deobfuscation Done ====`, "success");
+    };
+
+    document.getElementById('btn-dynamic').onclick = async (e) => { e.preventDefault(); const c = cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(await dynamicUnpack(c))); };
+    document.getElementById('btn-strings').onclick = (e) => { e.preventDefault(); const c = cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(decodeStringsAST(c).code)); };
+    document.getElementById('btn-antiminify').onclick = (e) => { e.preventDefault(); const c = cmOutput.getValue() || cmInput.getValue(); if(c) cmOutput.setValue(finalizeCode(antiMinify(c))); };
 </script>
 </body>
 </html>
