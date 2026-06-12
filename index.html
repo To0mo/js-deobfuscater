@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Universal JS Deobfuscator Studio</title>
+    <title>Universal JS Deobfuscator Studio Ultimate</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts (Fira Code & Inter) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- CodeMirror CSS -->
@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/darcula.min.css">
     
     <style>
-        /* お気に入りの色合いを維持しつつ、余白・丸みを削ったコンパクトなスタイル */
         html, body {
             margin: 0;
             padding: 12px;
@@ -27,7 +26,7 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* ダッシュボード型（各パネル内でスクロール） */
+            overflow: hidden;
             box-sizing: border-box;
         }
         * { box-sizing: border-box; }
@@ -86,7 +85,6 @@
             flex-direction: row; 
         }
         
-        /* コンパクトで四角いウィンドウパネル */
         .window-panel { 
             flex: 1; 
             display: flex; 
@@ -111,19 +109,12 @@
             flex-shrink: 0;
         }
         
-        .editor-container {
-            flex: 1;
-            position: relative;
-        }
+        .editor-container { flex: 1; position: relative; }
         
-        /* CodeMirror */
         .CodeMirror {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             height: 100% !important;
-            font-family: 'Fira Code', monospace;
-            font-size: 13px;
-            line-height: 1.5;
+            font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.5;
         }
         .cm-s-darcula.CodeMirror { background-color: #1e1f22; color: #e4e4e4; }
         .cm-s-darcula .CodeMirror-gutters { background-color: #1e1f22; border-right: 1px solid #2d2f33; }
@@ -133,37 +124,17 @@
         .CodeMirror-line::selection, .CodeMirror-line > span::selection { background: #32445a !important; }
         .CodeMirror-placeholder { color: #5c6168 !important; }
         
-        /* ログエリア */
         .log-section { 
-            height: 150px; 
-            flex-shrink: 0; 
-            background-color: #1e1f22; 
-            border: 1px solid #2d2f33; 
-            border-radius: 6px; 
-            margin-top: 12px; 
-            display: flex; 
-            flex-direction: column; 
+            height: 150px; flex-shrink: 0; background-color: #1e1f22; 
+            border: 1px solid #2d2f33; border-radius: 6px; margin-top: 12px; display: flex; flex-direction: column; 
         }
         .log-header { 
-            padding: 6px 12px; 
-            font-size: 12px; 
-            font-weight: 600; 
-            color: #b9bbbe; 
-            border-bottom: 1px solid #2d2f33; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            flex-shrink: 0; 
+            padding: 6px 12px; font-size: 12px; font-weight: 600; color: #b9bbbe; 
+            border-bottom: 1px solid #2d2f33; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; 
         }
         .log-content { 
-            flex: 1; 
-            padding: 8px 12px; 
-            overflow-y: auto; 
-            font-family: 'Fira Code', monospace; 
-            font-size: 12px; 
-            line-height: 1.5;
-            margin: 0; 
-            color: #b9bbbe; 
+            flex: 1; padding: 8px 12px; overflow-y: auto; font-family: 'Fira Code', monospace; 
+            font-size: 12px; line-height: 1.5; margin: 0; color: #b9bbbe; 
         }
         
         .log-msg { border-bottom: 1px dashed rgba(45, 47, 51, 0.8); padding: 4px 0; word-break: break-all; }
@@ -178,13 +149,11 @@
         }
         .icon-btn:hover { background: rgba(255,255,255,0.1); color: #e4e4e4; }
 
-        /* スクロールバーのカスタマイズ */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #3d4047; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5c6168; }
 
-        /* スマホ時のレスポンシブ処理 */
         @media (max-width: 768px) {
             body { height: auto; display: block; overflow-y: auto; }
             header { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -198,20 +167,20 @@
 <body>
 
 <header>
-    <h1><i class="bi bi-shield-check" style="color: #3fb950; font-size: 20px;"></i> Universal JS Deobfuscator</h1>
+    <h1><i class="bi bi-fire" style="color: #f85149; font-size: 20px;"></i> Universal JS Deobfuscator <span style="color: #6b6f75; font-size: 12px;">ULTIMATE</span></h1>
     <div class="toolbar">
         <div class="dropdown">
             <button class="btn-success-custom dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-tools"></i> Actions
             </button>
             <ul class="dropdown-menu dropdown-menu-dark shadow-lg">
-                <li><a class="dropdown-item fw-bold" href="#" id="btn-auto"><i class="bi bi-magic text-success me-2"></i> Deobfuscate</a></li>
+                <li><a class="dropdown-item fw-bold" href="#" id="btn-auto"><i class="bi bi-magic text-success me-2"></i> Deep Auto Deobfuscate</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" id="btn-dynamic"><i class="bi bi-play-circle text-info me-2"></i> Dynamic Unpack</a></li>
-                <li><a class="dropdown-item" href="#" id="btn-strings"><i class="bi bi-fonts text-warning me-2"></i> Decode AST</a></li>
+                <li><a class="dropdown-item" href="#" id="btn-dynamic"><i class="bi bi-play-circle text-info me-2"></i> Sandbox Unpack</a></li>
+                <li><a class="dropdown-item" href="#" id="btn-strings"><i class="bi bi-fonts text-warning me-2"></i> Decode Strings AST</a></li>
                 <li><a class="dropdown-item" href="#" id="btn-antiminify"><i class="bi bi-person-lines-fill me-2" style="color: #b392f0;"></i> Anti-Minify</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#" id="btn-format"><i class="bi bi-code-slash text-secondary me-2"></i> Beautify</a></li>
+                <li><a class="dropdown-item" href="#" id="btn-format"><i class="bi bi-code-slash text-secondary me-2"></i> Force Beautify</a></li>
             </ul>
         </div>
         <button class="btn-danger-custom" id="btn-clear" title="Clear All"><i class="bi bi-trash"></i> Clear</button>
@@ -261,26 +230,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/display/placeholder.min.js"></script>
 
 <script>
-    // CodeMirror Initialization
+    // --- Editor Initialization ---
     const cmInput = CodeMirror.fromTextArea(document.getElementById('input-editor'), {
-        mode: "javascript",
-        theme: "darcula",
-        lineNumbers: true,
-        lineWrapping: true,
-        matchBrackets: true,
-        indentUnit: 4,
-        placeholder: "// Paste your obfuscated JavaScript code here..."
+        mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true, matchBrackets: true, indentUnit: 4,
+        placeholder: "// Paste obfuscator.io or any obfuscated JS code here..."
     });
     
     const cmOutput = CodeMirror.fromTextArea(document.getElementById('output-editor'), {
-        mode: "javascript",
-        theme: "darcula",
-        lineNumbers: true,
-        lineWrapping: true,
-        matchBrackets: true,
-        readOnly: false,
-        indentUnit: 4,
-        placeholder: "// Decoded output will appear here..."
+        mode: "javascript", theme: "darcula", lineNumbers: true, lineWrapping: true, matchBrackets: true, readOnly: false, indentUnit: 4,
+        placeholder: "// Decoded and beautified output will appear here..."
     });
 
     const logContent = document.getElementById('log-content');
@@ -300,11 +258,9 @@
     }
 
     document.getElementById('btn-clear').addEventListener('click', () => {
-        cmInput.setValue(''); 
-        cmOutput.setValue(''); 
-        logContent.innerHTML = '';
-        log('Workspace cleared.', 'info');
+        cmInput.setValue(''); cmOutput.setValue(''); logContent.innerHTML = ''; log('Workspace cleared.', 'info');
     });
+    
     document.getElementById('btn-clear-log').addEventListener('click', () => logContent.innerHTML = '');
     
     document.getElementById('btn-copy').addEventListener('click', () => {
@@ -313,21 +269,19 @@
             btn.innerHTML = '<i class="bi bi-check2" style="color:var(--success);"></i> Copied';
             setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard"></i> Copy'; }, 1500);
             log('Output copied to clipboard.', 'success');
-        }).catch(err => {
-            log('Failed to copy: ' + err, 'error');
-        });
+        }).catch(err => log('Failed to copy: ' + err, 'error'));
     });
 
-    // --- Format ---
-    // --- Format (Enhanced Beautify) ---
+    // --- Core Utilities ---
+
     function formatCode(code) {
         if (typeof js_beautify !== 'function') return code;
         try {
             return js_beautify(code, {
                 indent_size: 4, 
                 space_in_empty_paren: false, 
-                preserve_newlines: false, // 元の不自然な改行を完全に無視する
-                max_preserve_newlines: 0, // 余分な空白行を消す
+                preserve_newlines: false, // Force completely ignoring original bad newlines
+                max_preserve_newlines: 0, 
                 jslint_happy: true, 
                 brace_style: "collapse", 
                 space_before_conditional: true
@@ -337,38 +291,32 @@
             return code;
         }
     }
-    // --- Final Cleanup & Beautify (Minify without renaming -> Format) ---
+
     function finalizeCode(code) {
         try {
             const cleanupPlugin = function({ types: t }) {
                 return {
                     visitor: {
-                        // 1. 到達不能コード (return, break, continue, throw の後) の削除
                         BlockStatement(path) {
                             let stopIndex = -1;
                             for (let i = 0; i < path.node.body.length; i++) {
                                 const stmt = path.node.body[i];
                                 if (t.isReturnStatement(stmt) || t.isThrowStatement(stmt) || t.isBreakStatement(stmt) || t.isContinueStatement(stmt)) {
-                                    stopIndex = i;
-                                    break;
+                                    stopIndex = i; break;
                                 }
                             }
-                            // ストップ位置以降にコードがあれば削除
                             if (stopIndex !== -1 && stopIndex < path.node.body.length - 1) {
                                 path.node.body.splice(stopIndex + 1);
                             }
                         },
-                        // 2. 関数の最後にある意味のない「return;」を削除
                         ReturnStatement(path) {
                             if (!path.node.argument) {
                                 const parent = path.parentPath;
                                 if (parent.isBlockStatement() && parent.node.body[parent.node.body.length - 1] === path.node) {
-                                    const grandparent = parent.parentPath;
-                                    if (grandparent.isFunction()) path.remove();
+                                    if (parent.parentPath.isFunction()) path.remove();
                                 }
                             }
                         },
-                        // 3. 余剰なネストブロック { { ... } } を解除して平坦化
                         BlockStatement: {
                             exit(path) {
                                 if (path.parentPath.isBlockStatement()) {
@@ -376,45 +324,33 @@
                                 }
                             }
                         },
-                        // 4. 無意味な空ステートメント (;) を削除
                         EmptyStatement(path) {
-                            if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) {
-                                path.remove();
-                            }
+                            if (!path.parentPath.isLoop() && !path.parentPath.isIfStatement()) path.remove();
                         }
                     }
                 };
             };
             
-            // パス1: Minify (名前は維持しつつ、コメントや余白を完全削除、構造を最小化)
             const minified = Babel.transform(code, {
-                ast: false,
-                code: true,
-                comments: false, // 全コメント削除
-                compact: true,   // 完全なMinify（スペース・改行を削る）
-                generatorOpts: { 
-                    jsescOption: { minimal: true }
-                },
+                ast: false, code: true, comments: false, compact: true,
+                generatorOpts: { jsescOption: { minimal: true } },
                 plugins: [cleanupPlugin]
             });
             
-            // パス2: Beautify (Minifyされて1行になったコードを改めて綺麗に整形)
             return formatCode(minified.code);
         } catch (e) {
-            log("Final Cleanup Error: " + e.message, "warning");
-            return formatCode(code); // エラー時は通常のBeautifyのみにフォールバック
+            return formatCode(code); 
         }
     }
-    
+
     document.getElementById('btn-format').addEventListener('click', (e) => {
         e.preventDefault();
         const code = cmOutput.getValue() || cmInput.getValue();
         if (!code) return;
-        cmOutput.setValue(formatCode(code));
-        log("Code formatted.", "success");
+        cmOutput.setValue(finalizeCode(code));
+        log("Code force-beautified.", "success");
     });
 
-    // --- Anti-Minify ---
     function antiMinify(code) {
         try {
             const ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
@@ -450,8 +386,7 @@
                 };
             };
             const transformed = Babel.transformFromAst(ast, code, {
-                generatorOpts: { retainLines: false, jsescOption: { minimal: true } },
-                plugins:[antiMinifyPlugin]
+                generatorOpts: { retainLines: false, jsescOption: { minimal: true } }, plugins:[antiMinifyPlugin]
             });
             return transformed.code;
         } catch(e) {
@@ -464,49 +399,10 @@
         e.preventDefault();
         const code = cmOutput.getValue() || cmInput.getValue();
         if (!code) return;
-        cmOutput.setValue(formatCode(antiMinify(code)));
+        cmOutput.setValue(finalizeCode(antiMinify(code)));
         log("Anti-Minify applied.", "success");
     });
 
-    // --- Snippet Parser ---
-    function canParseJavaScript(code) {
-        try { Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true } }); return true; } 
-        catch (e) { return false; }
-    }
-
-    function splitInputIntoSnippets(rawCode) {
-        const normalized = String(rawCode || "").replace(/^\uFEFF/, "").trim();
-        if (!normalized) return [];
-        if (canParseJavaScript(normalized)) return[{ title: "", code: normalized }];
-        const lines = normalized.split(/\r?\n/);
-        const snippets =[];
-        let currentTitle = ""; let bucket =[];
-        const flushBucket = () => {
-            const chunk = bucket.join("\n").trim(); bucket =[];
-            if (!chunk) return;
-            if (canParseJavaScript(chunk)) snippets.push({ title: currentTitle, code: chunk });
-        };
-        lines.forEach((line) => {
-            const marker = line.match(/^\s*(?:\/\/\s*)?Example\s+(\d+)\s*:?\s*$/i);
-            if (marker) { flushBucket(); currentTitle = `Example ${marker[1]}`; return; }
-            bucket.push(line);
-        });
-        flushBucket();
-        if (snippets.length > 0) return snippets;
-        const markerRemoved = normalized.replace(/^\s*(?:\/\/\s*)?Example\s+\d+\s*:?\s*$/gim, "").trim();
-        if (markerRemoved && canParseJavaScript(markerRemoved)) return[{ title: "", code: markerRemoved }];
-        return [{ title: "", code: normalized }];
-    }
-
-    function buildMultiSnippetOutput(results) {
-        if (results.length === 1) return results[0].code;
-        return results.map((result, index) => {
-            const title = result.title || `Snippet ${index + 1}`;
-            return `/* ${title} */\n${result.code}`;
-        }).join("\n\n");
-    }
-
-    // --- Dynamic Unpack ---
     function dynamicUnpack(code) {
         return new Promise((resolve) => {
             const iframe = document.createElement('iframe');
@@ -543,106 +439,86 @@
 
     document.getElementById('btn-dynamic').addEventListener('click', async (e) => {
         e.preventDefault();
-        const snippets = splitInputIntoSnippets(cmInput.getValue());
-        if (!snippets.length) return;
-        const results =[];
-        for (const snippet of snippets) {
-            log(`Dynamic Unpack: Running sandbox...`, "info");
-            const unpacked = await dynamicUnpack(snippet.code);
-            // 修正箇所: formatCode を finalizeCode に変更
-            results.push({ title: snippet.title, code: finalizeCode(unpacked) });
-        }
-        cmOutput.setValue(buildMultiSnippetOutput(results));
+        const code = cmInput.getValue();
+        if (!code) return;
+        log(`Dynamic Unpack: Running sandbox...`, "info");
+        const unpacked = await dynamicUnpack(code);
+        cmOutput.setValue(finalizeCode(unpacked));
     });
 
-    // --- AST Decode Engine (Full Logic Restored) ---
-    // --- AST Decode Engine (Enhanced with Auto-Hook, Unflattening, and DCE) ---
-    // --- AST Decode Engine (Enhanced for For-Loops, Array Methods, and DCE) ---
-    // --- AST Decode Engine (Enhanced with AST cloning and Dead Code Elimination) ---
-    // --- AST Decode Engine (Enhanced with AST cloning and Dead Code Elimination) ---
-    // --- AST Decode Engine (Enhanced with Dynamic Safe Dead Code Elimination) ---
-    // --- AST Decode Engine (Browser-Safe Dynamic DCE Edition) ---
-    // --- AST Decode Engine (Enhanced with Static Domino DCE & Property Normalization) ---
-    // --- AST Decode Engine (Ultimate Universal Edition for obfuscator.io) ---
-    // --- AST Decode Engine (Ultimate Universal Edition for obfuscator.io) ---
-    // --- AST Decode Engine (Ultimate Universal Edition for obfuscator.io) ---
-    // --- AST Decode Engine (Stable & Universal Edition) ---
-    // --- AST Decode Engine (Ultimate Full-Sandbox Execution Edition) ---
+    // =========================================================================
+    // THE ULTIMATE AST DEOBFUSCATOR ENGINE
+    // =========================================================================
     function decodeStringsAST(code) {
         let ast;
-        try { ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; } 
-        catch(e) { log("AST parsing failed: " + e.message, "error"); return { code, changed: false }; }
-
-        let replacedCount = 0; let foldedCount = 0;
-
-        // 1. サンドボックス用「完全ミラー環境」の構築プラグイン
-        let setupCode = "";
-        try {
-            const sandboxAst = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast;
-            const sandboxPrepPlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        DebuggerStatement(path) { path.remove(); },
-                        // アンチデバッグの無限ループ罠を無効化（1万回でBreak）
-                        "WhileStatement|ForStatement|DoWhileStatement"(path) {
-                            const cnt = path.scope.generateUidIdentifier("loop_cnt");
-                            path.insertBefore(t.variableDeclaration("let",[t.variableDeclarator(cnt, t.numericLiteral(0))]));
-                            const limitCheck = t.ifStatement(
-                                t.binaryExpression(">", t.updateExpression("++", cnt), t.numericLiteral(15000)),
-                                t.breakStatement()
-                            );
-                            if (t.isBlockStatement(path.node.body)) {
-                                path.node.body.body.unshift(limitCheck);
-                            } else {
-                                path.node.body = t.blockStatement([limitCheck, path.node.body]);
-                            }
-                        },
-                        // 全ての関数を window にエクスポート（IIFE内部の関数も強制的に引っ張り出す）
-                        FunctionDeclaration(path) {
-                            if (path.node.id) {
-                                const name = path.node.id.name;
-                                path.insertAfter(t.expressionStatement(t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier(name)), t.identifier(name))));
-                            }
-                        },
-                        // 全ての変数を window にエクスポート
-                        VariableDeclaration(path) {
-                            if (path.parentPath.isForStatement() || path.parentPath.isWhileStatement() || path.parentPath.isForInStatement() || path.parentPath.isForOfStatement()) return;
-                            const assignments = [];
-                            path.node.declarations.forEach(decl => {
-                                if (t.isIdentifier(decl.id)) {
-                                    const name = decl.id.name;
-                                    assignments.push(t.expressionStatement(t.assignmentExpression("=", t.memberExpression(t.identifier("window"), t.identifier(name)), t.identifier(name))));
-                                }
-                            });
-                            if (assignments.length > 0) path.insertAfter(assignments);
-                        }
-                    }
-                };
-            };
-            setupCode = Babel.transformFromAst(sandboxAst, code, { ast: false, code: true, plugins: [sandboxPrepPlugin] }).code;
-        } catch(e) {
-            setupCode = code; // Fallback
+        try { 
+            ast = Babel.transform(code, { ast: true, code: false, parserOpts: { allowReturnOutsideFunction: true } }).ast; 
+        } catch(e) { 
+            log("AST parsing failed: " + e.message, "error"); return { code, changed: false }; 
         }
 
-        // 2. Iframeへのフルコード注入と実行（暗号配列のシャッフルなどをすべて完了させる）
+        let replacedCount = 0; let foldedCount = 0; let inlinedCount = 0;
+
+        // Step 1: Detect Setup Code & Obfuscator.io Rotation IIFEs
+        // (Must use exact source code slicing to bypass Anti-Formatting!)
+        let setupCode = "";
+        let rotationNodeStarts = new Set();
+        
+        ast.program.body.forEach(node => {
+            const isDecl = node.type === 'VariableDeclaration' || node.type === 'FunctionDeclaration';
+            
+            let isRotation = false;
+            if (node.type === 'ExpressionStatement' || node.type === 'SequenceExpression') {
+                let hasWhile=false, hasPushShift=false, hasTryCatch=false;
+                Babel.traverse(node, {
+                    noScope: true,
+                    WhileStatement() { hasWhile = true; },
+                    TryStatement() { hasTryCatch = true; },
+                    Identifier(p) { if (p.node.name === 'push' || p.node.name === 'shift') hasPushShift = true; }
+                });
+                if (hasWhile && hasTryCatch && hasPushShift) isRotation = true;
+            }
+
+            if (isDecl || isRotation) {
+                // Exact string extraction preserves formatting perfectly.
+                setupCode += code.substring(node.start, node.end) + "\n";
+                if (isRotation) rotationNodeStarts.add(node.start);
+            }
+        });
+
+        // Step 2: Full native sandbox setup
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
         const win = iframe.contentWindow;
+        
         try {
+            // Mock APIs to prevent malicious behavior or hangs
             win.console = new Proxy({}, { get: () => () => {} });
             ['alert', 'prompt', 'confirm', 'open', 'print', 'fetch'].forEach(m => win[m] = ()=>{});
             win.XMLHttpRequest = function(){};
             win.setTimeout = ()=>{return 0;}; win.setInterval = ()=>{return 0;};
             
-            const script = win.document.createElement('script');
-            script.textContent = setupCode;
-            win.document.body.appendChild(script);
+            // Defeat obfuscator.io debugger traps
+            const origFunction = win.Function;
+            win.Function = function(...args) {
+                if (args.some(a => typeof a === 'string' && a.includes('debugger'))) {
+                    return function(){};
+                }
+                return origFunction.apply(this, args);
+            };
+            win.Function.prototype = origFunction.prototype;
+
+            if (setupCode.trim()) {
+                const script = win.document.createElement('script');
+                script.textContent = setupCode;
+                win.document.body.appendChild(script);
+            }
         } catch (e) {
-            log("Sandbox execution error: " + e.message, "error");
+            log("Sandbox setup error: " + e.message, "error");
         }
 
-        // 3. 超強力インサイド・アウト デオプフスケーションプラグイン
+        // Step 3: Main Transformation Plugin
         const deobfuscatePlugin = function({ types: t }) {
             const blockedCallees = new Set(['eval', 'require', 'setTimeout', 'setInterval', 'Function', 'console']);
             
@@ -666,12 +542,11 @@
                 return null;
             };
 
-            // ASTノードをコード化してIframeで評価する
             const tryEval = (path) => {
                 try {
-                    const { code: exprCode } = Babel.transformFromAst(t.program([t.expressionStatement(t.cloneNode(path.node, true))]), "", { ast: false, code: true });
+                    const exprCode = Babel.transformFromAst(t.program([t.expressionStatement(t.cloneNode(path.node, true))]), "", { ast: false, code: true }).code;
                     const res = win.eval(exprCode);
-                    if (res !== undefined && typeof res !== 'function') {
+                    if (res !== undefined && typeof res !== 'function' && typeof res !== 'symbol') {
                         const literalNode = toLiteralNode(res);
                         if (literalNode) { 
                             path.replaceWith(literalNode); 
@@ -683,7 +558,6 @@
                 return false;
             };
 
-            // 関数の中身を走査し、副作用（console.logなど）を持つペイロード関数か、純粋な暗号解読関数かを見分ける
             const hasSideEffects = (funcName, scope) => {
                 const binding = scope.getBinding(funcName);
                 if (!binding || !binding.path.isFunction()) return false;
@@ -700,21 +574,53 @@
 
             return {
                 visitor: {
-                    // 最深部（引数）から評価するための exit トラバース
                     CallExpression: {
                         exit(path) {
                             if (t.isIdentifier(path.node.callee)) {
                                 const funcName = path.node.callee.name;
                                 if (blockedCallees.has(funcName)) return;
                                 
-                                // 副作用がある関数（例: greet）は評価をスキップし、純粋なデコード関数だけを評価する
+                                // Feature A: Inline Wrapper Functions (_0x55e1e1 etc.)
+                                const binding = path.scope.getBinding(funcName);
+                                if (binding && binding.path.isFunctionDeclaration()) {
+                                    const funcNode = binding.path.node;
+                                    if (funcNode.body.body.length === 1 && t.isReturnStatement(funcNode.body.body[0]) && funcNode.body.body[0].argument) {
+                                        const params = funcNode.params;
+                                        const args = path.node.arguments;
+                                        if (params.every(p => t.isIdentifier(p))) {
+                                            const argMap = {};
+                                            params.forEach((p, i) => { argMap[p.name] = args[i] || t.identifier("undefined"); });
+                                            
+                                            const inlined = t.cloneNode(funcNode.body.body[0].argument, true);
+                                            let canInline = true;
+                                            Babel.traverse(inlined, { noScope: true, Function() { canInline = false; } });
+
+                                            if (canInline) {
+                                                if (t.isIdentifier(inlined) && argMap[inlined.name]) {
+                                                    path.replaceWith(t.cloneNode(argMap[inlined.name], true));
+                                                } else {
+                                                    path.replaceWith(inlined);
+                                                    path.traverse({
+                                                        Identifier(ip) {
+                                                            if (ip.isReferencedIdentifier() && argMap[ip.node.name]) {
+                                                                ip.replaceWith(t.cloneNode(argMap[ip.node.name], true));
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                                inlinedCount++; return;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // Feature B: Evaluate String Decoder Functions
                                 if (hasSideEffects(funcName, path.scope)) return;
-                                
                                 if (path.node.arguments.every(isLiteralLike)) {
                                     tryEval(path);
                                 }
                             } else if (t.isMemberExpression(path.node.callee)) {
-                                // .filter().join() などの配列操作チェーンの評価
+                                // Feature C: Evaluate Array Methods (e.g. .filter().join())
                                 let safe = true;
                                 path.traverse({ 
                                     Identifier(p) { 
@@ -732,7 +638,7 @@
                             }
                         }
                     },
-                    // for/whileを使った制御フロー平坦化の解除
+                    // Control Flow Unflattening (Switch inside Loop)
                     "WhileStatement|ForStatement"(path) {
                         const body = path.node.body;
                         let switchStmt = t.isBlockStatement(body) ? body.body.find(n => t.isSwitchStatement(n)) : (t.isSwitchStatement(body) ? body : null);
@@ -762,9 +668,10 @@
                             while (curr !== null && curr !== undefined && caseMap[curr] && !visited.has(curr)) {
                                 visited.add(curr); unflattened.push(...caseMap[curr].stmts); curr = caseMap[curr].nextState;
                             }
-                            if (unflattened.length > 0) { path.replaceWith(t.blockStatement(unflattened)); replacedCount++; }
+                            if (unflattened.length > 0) { path.replaceWith(t.blockStatement(unflattened)); foldedCount++; }
                         }
                     },
+                    // Normalize console["log"] -> console.log
                     MemberExpression: {
                         exit(path) {
                             if (path.node.computed && t.isStringLiteral(path.node.property)) {
@@ -797,85 +704,89 @@
             };
         };
 
-        // 4. 静的DCE（不必要な暗号関数の残骸を自動削除）
-        function applyStaticDCE(initialCode) {
-            let workingCode = initialCode;
-            let totalRemoved = 0; let changed;
-            const dcePlugin = function({ types: t }) {
-                return {
-                    visitor: {
-                        "VariableDeclarator|FunctionDeclaration"(path) {
-                            if (path.removed) return;
-                            if (!path.node.id || !t.isIdentifier(path.node.id)) return;
-                            const binding = path.scope.getBinding(path.node.id.name);
-                            if (binding && !binding.referenced) {
-                                if (path.isVariableDeclarator()) {
-                                    const parent = path.parentPath;
-                                    path.remove();
-                                    if (parent && parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
-                                } else { path.remove(); }
-                                changed = true; totalRemoved++;
-                            }
-                        }
-                    }
-                };
-            };
-            let passCount = 0;
-            do {
-                changed = false;
-                try {
-                    const transformed = Babel.transform(workingCode, { ast: false, code: true, plugins: [dcePlugin] });
-                    if (changed) workingCode = transformed.code;
-                } catch(e) { break; }
-                passCount++;
-            } while(changed && passCount < 50);
-            return { code: workingCode, removed: totalRemoved };
-        }
-
+        let transformedCode = code;
         try {
-            // パス1: フルデコード実行
-            const phase2Code = Babel.transformFromAst(ast, code, { 
+            transformedCode = Babel.transformFromAst(ast, code, { 
                 ast: false, code: true, 
                 generatorOpts: { jsescOption: { minimal: true } }, 
                 plugins: [deobfuscatePlugin] 
             }).code;
-            
-            // パス2: 参照を失ったダミー配列や関数の除去
-            const finalResult = applyStaticDCE(phase2Code);
-            document.body.removeChild(iframe);
-            
-            if (replacedCount > 0 || foldedCount > 0) log(`AST Deobf: Evaluated ${replacedCount} calls, Simplified ${foldedCount} paths`, "info");
-            if (finalResult.removed > 0) log(`AST Deobf: Removed ${finalResult.removed} dead declarations`, "success");
-            
-            return { code: finalResult.code, changed: (replacedCount > 0 || foldedCount > 0 || finalResult.removed > 0) };
-        } catch (e) {
-            document.body.removeChild(iframe);
-            log("AST engine error: " + e.message, "error");
-            return { code, changed: false };
+        } catch(e) {
+            log("AST transform error: " + e.message, "error");
         }
+
+        // Step 4: Powerful Explicit Dead Code Elimination (DCE)
+        let dceRemoved = 0;
+        const dcePlugin = function({ types: t }) {
+            return {
+                visitor: {
+                    // Force delete the Rotation IIFE we identified earlier
+                    "ExpressionStatement|SequenceExpression"(path) {
+                        if (rotationNodeStarts.has(path.node.start)) {
+                            path.remove();
+                            dceRemoved++;
+                        }
+                    },
+                    "VariableDeclarator|FunctionDeclaration"(path) {
+                        if (path.removed) return;
+                        if (!path.node.id || !t.isIdentifier(path.node.id)) return;
+                        
+                        const binding = path.scope.getBinding(path.node.id.name);
+                        // Delete unreferenced declarations
+                        if (binding && !binding.referenced) {
+                            if (path.isVariableDeclarator()) {
+                                const parent = path.parentPath;
+                                path.remove();
+                                if (parent && parent.isVariableDeclaration() && parent.node.declarations.length === 0) parent.remove();
+                            } else {
+                                path.remove();
+                            }
+                            dceRemoved++;
+                        }
+                    }
+                }
+            };
+        };
+
+        // Domino DCE loop
+        let passCount = 0;
+        let changedDCE = true;
+        while(changedDCE && passCount < 10) {
+            changedDCE = false;
+            try {
+                const preDceCode = transformedCode;
+                transformedCode = Babel.transform(transformedCode, { ast: false, code: true, plugins: [dcePlugin] }).code;
+                if (preDceCode !== transformedCode) changedDCE = true;
+            } catch(e) { break; }
+            passCount++;
+        }
+
+        document.body.removeChild(iframe);
+
+        const totalChanged = replacedCount > 0 || foldedCount > 0 || inlinedCount > 0 || dceRemoved > 0;
+        if (totalChanged) {
+            log(`AST Deobf: Evaluated ${replacedCount} calls, Inlined ${inlinedCount} wrappers, Unflattened ${foldedCount} paths, Removed ${dceRemoved} dead nodes`, "success");
+        }
+        
+        return { code: transformedCode, changed: totalChanged };
     }
 
     document.getElementById('btn-strings').addEventListener('click', (e) => {
         e.preventDefault();
-        const snippets = splitInputIntoSnippets(cmInput.getValue());
-        if (!snippets.length) return;
-        const results = snippets.map((snippet) => {
-            log(`Decoding AST & Unflattening...`, "info");
-            const result = decodeStringsAST(snippet.code);
-            // 修正箇所: formatCode を finalizeCode に変更
-            return { title: snippet.title, code: finalizeCode(result.code) };
-        });
-        cmOutput.setValue(buildMultiSnippetOutput(results));
+        const code = cmInput.getValue();
+        if (!code) return;
+        log(`Decoding AST & Unflattening...`, "info");
+        const result = decodeStringsAST(code);
+        cmOutput.setValue(finalizeCode(result.code));
     });
 
-    // --- Deep Auto (既存の該当部分を修正) ---
-    async function deepAutoSingle(code, label = "") {
-        const prefix = label ? `[${label}] ` : "";
+    // --- Deep Auto Deobfuscation Engine ---
+    async function deepAutoSingle(code) {
         let currentCode = code; let prevOverallCode = ""; let globalIter = 0;
         
         while (currentCode !== prevOverallCode && globalIter < 3) {
             prevOverallCode = currentCode; globalIter++;
-            log(`${prefix}Pass ${globalIter}: Sandbox Dynamic Unpack...`, "warning");
+            log(`[Pass ${globalIter}] Sandbox Dynamic Unpack...`, "warning");
             const unpacked = await dynamicUnpack(currentCode);
             if (unpacked !== currentCode) currentCode = unpacked;
             
@@ -889,32 +800,24 @@
             }
         }
         
-        log(`${prefix}Final Pass: Anti-Minify...`, "info");
+        log(`Final Pass: Anti-Minify...`, "info");
         currentCode = antiMinify(currentCode);
         
-        log(`${prefix}Final Pass: Cleanup & Format...`, "info");
-        // 修正箇所: formatCode を finalizeCode に変更
+        log(`Final Pass: Cleanup & Force Beautify...`, "info");
         return { code: finalizeCode(currentCode), passes: globalIter };
     }
 
     document.getElementById('btn-auto').addEventListener('click', async (e) => {
         e.preventDefault();
-        const snippets = splitInputIntoSnippets(cmInput.getValue());
-        if (!snippets.length) return;
+        const code = cmInput.getValue();
+        if (!code) return;
         log("==== Deep Auto Deobfuscation Start ====", "success");
         cmOutput.setValue("Processing...");
         
-        const results =[];
-        for (let i = 0; i < snippets.length; i++) {
-            const snippet = snippets[i];
-            const label = snippet.title || `Snippet ${i + 1}`;
-            const result = await deepAutoSingle(snippet.code, label);
-            results.push({ title: snippet.title || label, code: result.code });
-            log(`[${label}] done (passes: ${result.passes})`, "success");
-        }
+        const result = await deepAutoSingle(code);
+        cmOutput.setValue(result.code);
         
-        cmOutput.setValue(buildMultiSnippetOutput(results));
-        log("==== Deep Auto Deobfuscation Done ====", "success");
+        log(`==== Deep Auto Deobfuscation Done (Passes: ${result.passes}) ====`, "success");
     });
 </script>
 </body>
