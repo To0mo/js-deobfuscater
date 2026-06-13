@@ -3,12 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Deobfuscator Sandbox</title>
+    <title>JS Deobfuscator AST Sandbox</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+    <style>
+        .CodeMirror {
+            height: 480px !important;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 13px;
+            border-radius: 0.375rem;
+        }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500/30">
 
@@ -16,11 +26,12 @@
         <!-- Header -->
         <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
             <div class="flex items-center gap-3">
-                <span class="text-indigo-500 font-bold text-lg font-mono">&lt;JS_DEOBFUSCATOR_SANDBOX/&gt;</span>
-                <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-mono">DYNAMIC HOOK v1.0</span>
+                <i class="bi bi-shield-lock-fill text-indigo-500 text-xl"></i>
+                <span class="text-indigo-500 font-bold text-lg font-mono">&lt;JS_AST_DEOBFUSCATOR/&gt;</span>
+                <span class="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-mono">HYBRID LOOP v3.4</span>
             </div>
             <div class="text-xs text-slate-500 font-mono">
-                隔離された動的フックおよびアンチデバッグ回避環境
+                Babel AST（静的） ＋ Sandboxフック（動的） ハイブリッドデオブファスケータ
             </div>
         </header>
 
@@ -33,12 +44,12 @@
                         <span class="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                         難読化コードの入力 (Obfuscated Input)
                     </h2>
-                    <button id="btn-clear" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50">
-                        クリア
+                    <button id="btn-clear" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50 flex items-center gap-1">
+                        <i class="bi bi-trash3"></i> クリア
                     </button>
                 </div>
                 <div class="flex-1 min-h-0 relative rounded-lg overflow-hidden border border-slate-800">
-                    <textarea id="input-code" class="hidden">var _jid_0x120276=_jid_0x15b5;(function(_0x5825f4,_0x2c7372){var _0x41c4b3=_jid_0x15b5,_0x3d4b2d=_0x5825f4();while(!![]){try{var _0x56a4ad=parseInt(_0x41c4b3(0x16f))/0x1+parseInt(_0x41c4b3(0x16c))/0x2+-parseInt(_0x41c4b3(0x170))/0x3+parseInt(_0x41c4b3(0x172))/0x4+parseInt(_0x41c4b3(0x168))/0x5*(parseInt(_0x41c4b3(0x167))/0x6)+-parseInt(_0x41c4b3(0x175))/0x7*(-parseInt(_0x41c4b3(0x169))/0x8)+-parseInt(_0x41c4b3(0x164))/0x9*(parseInt(_0x41c4b3(0x174))/0xa);if(_0x56a4ad===_0x2c7372)break;else _0x3d4b2d['push'](_0x3d4b2d['shift']());}catch(_0x4ab75d){_0x3d4b2d['push'](_0x3d4b2d['shift']());}}}(_jid_0x4cdc,0x94ad4));function _jid_0x4cdc(){var _0x8b9cba=['search','length','384BVlGkG','21270EzJEXm','439632IlkkiS','toString','ilter','2155646CrjmIc','charCodeAt','constructor','703882arrWpq','2002272gZmVCQ','(((.+)+)+)+$','4157500UrQBgx','sys_2sdwcvh1x5m','7705060VjPBWn','63WUMOyA','27RJjkTX'];_jid_0x4cdc=function(){return _0x8b9cba;};return _jid_0x4cdc()}function _jid_0x15b5(_0x1a96ce,_0x1cc694){_0x1a96ce=_0x1a96ce-0x164;var _0x1948dd=_jid_0x4cdc();var _0x8c37aa=_0x1948dd[_0x1a96ce];return _0x8c37aa};(function(_0x2eddf8,_0xaa5e4d){var _0x418670=_jid_0x15b5,_0x31e5d4=(function(){var _0xf4dff5=!![];return function(_0x3deac5,_0x466c9a){var _0x12f7de=_0xf4dff5?function(){if(_0x466c9a){var _0x3a2bdc=_0x466c9a['apply'](_0x3deac5,arguments);return _0x466c9a=null,_0x3a2bdc;}}:function(){};return _0xf4dff5=![],_0x12f7de}}()),_0x1172c2=_0x31e5d4(this,function(){var _0x473c45=_jid_0x15b5;return _0x1172c2[_0x473c45(0x16a)]()[_0x473c45(0x165)]('(((.+)+)+)+$')[_0x473c45(0x16a)]()[_0x473c45(0x16e)](_0x1172c2)[_0x473c45(0x165)](_0x473c45(0x171))});_0x1172c2();var _0x2a7891=[],_0x150c3d=0x0,_0x54f5db,_0x30a131='',_0x41a1d0=Date['now']()>0x0?0x0:0x1,_0x196310=atob(_0xaa5e4d);for(var _0x46ce97=0x0;_0x46ce97<0x100;_0x46ce97++)_0x2a7891[_0x46ce97]=_0x46ce97;for(var _0x46ce97=0x0;_0x46ce97<0x100;_0x46ce97++){_0x150c3d=(_0x150c3d+_0x2a7891[_0x46ce97]+_0x2eddf8[_0x418670(0x16d)](_0x46ce97%_0x2eddf8[_0x418670(0x166)])+_0x41a1d0)%0x100,_0x54f5db=_0x2a7891[_0x46ce97],_0x2a7891[_0x46ce97]=_0x2a7891[_0x150c3d],_0x2a7891[_0x150c3d]=_0x54f5db}_0x150c3d=0x0;for(var _0x46ce97=0x0,_0x369d77=0x0;_0x369d77<_0x196310[_0x418670(0x166)];_0x369d77++){_0x46ce97=(_0x46ce97+0x1)%0x100,_0x150c3d=(_0x150c3d+_0x2a7891[_0x46ce97])%0x100,_0x54f5db=_0x2a7891[_0x46ce97],_0x2a7891[_0x46ce97]=_0x2a7891[_0x150c3d],_0x2a7891[_0x150c3d]=_0x54f5db,_0x30a131+=String['fromCharCode'](_0x196310['charCodeAt'](_0x369d77)^_0x2a7891[(_0x2a7891[_0x46ce97]+_0x2a7891[_0x150c3d])%0x100])}[]['f'+_0x418670(0x16b)]['c'+'onstructor'](decodeURIComponent(escape(_0x30a131)))()}(_jid_0x120276(0x173),'9rxV+uAdwwGNeHt0cXSofDiroizjnB64WM/qQpgWyixbqgcn6Ov+tU4Hl742FEiIxwJy7+moGcQUFX/Oxs/C6WSpd5QiKO4juaZJcUqBJ6HYJXjYxHPpRoCvPcmZcWL+ltPotKcDYV0ebf+eS+RpB2fMFF+Hzbp0wfXnL1EV5EcpDcEdvsycJUq1SteXEqZEiA8TDWM/xHOR8lHR3ANHkw8/RlYrg4LG+VF8eDLtmKWCbVn4dPashKfc/vXNO6U5tgWj1LfmrcMnmA89KHcfdbl9UvJyi1cNmz4F35ga3zEpRzjgW5d2MuPQjih9AxKVOpZgEPHD+EUH72fmo066EyVw2WroR+YZgbLf9Dw0UwQT/4/dIIQ4veKVDUU6KCUFyFaToG2uBIpGgXsmNl0tMhQZmFTMjGMRdWx16MHTpOcC0OE0/MSLe0Gosjaz6nAoBpcep3+OkfucD6+fauX5Ve1I37g9W4cmgr4Y/5plAq+YFaMYM318a+ZJDe7LHlj8MH3Lim+VZsZwkGbNYfGdi/LNeuYCXEdfF+drW1AQkS4RrJq+KTzUKk1T8r5fALnzkP/yqb1D7aEBKLrU3l0CjlOb9w5RfHVbT5VUIfvQSt3GVSDJrOUFnRKjtpJttUpuDPRCFFR0U6qyYuDkHOav4E4+6Jtb/cCqSwk+dAQqQDVXJHXxGT5T1vC18HFzV7MfD0M62fvEx+Ngs7+H6JuuGX8uX2m5SPamXLfvFWX9P2WzpE731mmZKqpIBDNx1qOiwjsG3bscgVg1nDjUTmC5p8mYiNJTwxvD6kmfPQodUyrRToyFloxdgNQEAxHRbv//pU3j+F1ZbRwM4NpEFzKlq/OYbZ+7zEQT0bmZAO6ckks3jLMpfFWLunWhHY2tquGL+koPGC+dN2TYfnxMxr6MK2qOrTLtl3ggJ8KFzFlQTxbr0F9E49rxbCYt0eJ2XuHmSYEb8C5WhkKSrsVI3xf/+RyO4LzBtbgh5RRWCw0Kr8gb2E5g+W0qTJc8rNJZ5+cLo/dVwAbBJizA4qcK7MFNxvvch+dr9Br3OLvoaGXXHtJAbB/3K2itfHUmsF8dXGrL72bD9DkrkFGsL8N2opjzWP15G5lsPGeCULD1kuN8gOYy3I8rYpX6/VELE9B9t4Ya6O9b/nKXbF5o5TpljmR/E1U1mET+bO8us+OTeFUN0EYmMN53n74NpL3xhUw86l+M1Ir8+6Mx5jtFBxhNjb8wZr/wwVOYvK+l0t7GLuzJVPKQQU/91sVnwI6EJrC/DcTFbCbQnHIhA5sNKSugGb000CdVGTA9B0hE6mgexLNuFq9jFJhQl2h6h4CI0ya4xW4qcsVinnqQHgwN4KK1od7KJhd1fVP6t3ZWagjimE38D4S3jMGn/ywcZ1oTY1t1rWmxJSL4s302jRY4QlE5SHcPYrEUx2pFXSd4xdi4N5JeCtB1qim+LjpRLJ1dHRLQfDH49O/OyPw27sr2hD0/IxwFRWMqBHC+q0xUXpSmJls1gN1yVOPMROqC40XxSlV93IixdCxIylQWhfhWeMgDvQq9UVLfCnGAlUARTM5f9ywZWGtBcMGe5Tk0K3sSUHHCFUxw/8shaoZqt9E3bFubQUXw/GZWbcomJDl/x/AsdtRtBmkFTVUS2OAjRdGjSx70gFJe6IM0oD3MdbaaU3SKgKsmPkjZXhMITaG5E27gxx5/xnCjvOlbbDQjW2NoHLohsm9HH959qE9KvRHMvUcgjH/qW4unxItft0MFC5SNI6jetcpxn3sXeAZO71klISOuyo9MQa4qL9WhaaJlJ6tYYBecWoSxoFLMG0zWus4vIlnGr631l8r9Kpg1rwIMJwaLHGsPi1qfFuOGpCYI+cltrXk8gQBRKVEZOvGSlGAaeVWBk4M15cfPp7GuXSFZhqGEO30v4LZRLL9xkNUk00xpy0SC4OcVd/NXJHL5q6gFdE4tDkSwTrgmeWd81+SZX36ibrHYL2Oujo0NNiF0yJVCBNodLNo8ZQPm5/mOI4SSLdV1GwyJyKoL/5aHLbhR4/6AOU1HNPTFAenRd/XhAdyt0No2uNajVgA7E6s4EEBgZOgPu7sp7IWZSCN9hETsJD06R5XbdNuFNPk6WSct2Z/IZlxM7OBSXbF/rcyIYVqKpf3a56A9KR65BgpcAiCK1vB4sZoJLsIpYh4zyn8m4ECYYVPXHnlQRdLvmMGtZ/nFgnRIjEjfpSJKjZMUj3/ihA0DBOblIIi34uE0+vXP/pV5SmZTr3fitGfqxAZg30S4ZmvLQhQ7sZmXUy0P24oV+DgqJ0ego/</textarea>
+                    <textarea id="input-code" class="hidden"></textarea>
                 </div>
             </div>
 
@@ -50,11 +61,11 @@
                         解析結果の表示 (Deobfuscated Output)
                     </h2>
                     <div class="flex gap-2">
-                        <button id="btn-copy-input" class="px-2.5 py-1 text-xs bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-400 hover:text-emerald-300 rounded font-mono transition-colors border border-emerald-800/50" title="多重に難読化されている場合に、結果を入力欄に移してさらに解析します">
-                            結果を入力へ転送
+                        <button id="btn-copy-input" class="px-2.5 py-1 text-xs bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-400 hover:text-emerald-300 rounded font-mono transition-colors border border-emerald-800/50 flex items-center gap-1" title="出力を入力に手動で戻します">
+                            <i class="bi bi-arrow-left-circle"></i> 結果を入力へ転送
                         </button>
-                        <button id="btn-copy" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50">
-                            コピー
+                        <button id="btn-copy" class="px-2.5 py-1 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono transition-colors border border-slate-700/50 flex items-center gap-1">
+                            <i class="bi bi-clipboard"></i> コピー
                         </button>
                     </div>
                 </div>
@@ -69,17 +80,15 @@
             <!-- Execution Controls -->
             <div class="flex flex-col justify-center gap-2">
                 <button id="btn-run" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold font-mono rounded-lg shadow-lg hover:shadow-indigo-500/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-                    </svg>
-                    動的フック実行
+                    <i class="bi bi-play-fill text-lg leading-none"></i>
+                    自動再帰解析を実行
                 </button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="btn-stop" class="py-1.5 px-2 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 rounded font-mono text-[11px] border border-slate-700/50 hover:border-rose-900/50 transition-all">
-                        停止/リセット
+                    <button id="btn-stop" class="py-1.5 px-2 bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 rounded font-mono text-[11px] border border-slate-700/50 hover:border-rose-900/50 transition-all flex justify-center items-center gap-1">
+                        <i class="bi bi-stop-circle"></i> 停止/リセット
                     </button>
-                    <button id="btn-beautify" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono text-[11px] border border-slate-700/50 transition-all">
-                        整形のみ
+                    <button id="btn-beautify" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-mono text-[11px] border border-slate-700/50 transition-all flex justify-center items-center gap-1">
+                        <i class="bi bi-magic"></i> 整形のみ
                     </button>
                 </div>
             </div>
@@ -87,19 +96,20 @@
             <!-- Console Log -->
             <div class="md:col-span-3 flex flex-col gap-1 min-h-0">
                 <div class="flex items-center justify-between text-[11px] font-mono text-slate-500">
-                    <span>CONSOLE LOG</span>
-                    <button id="btn-clear-log" class="hover:text-slate-300 transition-colors">ログクリア</button>
+                    <span class="flex items-center gap-1"><i class="bi bi-terminal"></i> CONSOLE LOG</span>
+                    <button id="btn-clear-log" class="hover:text-slate-300 transition-colors flex items-center gap-1"><i class="bi bi-eraser"></i> ログクリア</button>
                 </div>
                 <div id="console-log" class="bg-slate-950 border border-slate-800 rounded-lg p-3 font-mono text-xs h-28 overflow-y-auto flex flex-col gap-0.5">
-                    <div class="text-slate-600">待機中。難読化コードを貼り付けて「動的フック実行」をクリックしてください。</div>
+                    <div class="text-slate-600">待機中。難読化コードを貼り付けて実行ボタンをクリックしてください。</div>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- CodeMirror & Beautify Libraries via CDN -->
+    <!-- CodeMirror, Babel Standalone & Beautify Libraries via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.20/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.7/beautify.min.js"></script>
 
     <script>
@@ -118,7 +128,7 @@
             lineWrapping: true
         });
 
-        // HTMLエスケープヘルパー
+        // HTMLエスケープ
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, tag => ({
                 '&': '&amp;',
@@ -139,188 +149,540 @@
             const timeStr = now.toTimeString().split(' ')[0];
             
             let color = 'text-slate-500';
-            let prefix = '⚙️ [SYSTEM]';
+            let iconClass = 'bi-gear-fill';
+            let label = '[SYSTEM]';
             
-            if (type === 'success') { color = 'text-emerald-400'; prefix = '✅ [SUCCESS]'; }
-            else if (type === 'error') { color = 'text-rose-400'; prefix = '❌ [ERROR]'; }
-            else if (type === 'warn') { color = 'text-amber-400'; prefix = '⚠️ [WARN]'; }
-            else if (type === 'info') { color = 'text-sky-400'; prefix = 'ℹ️ [INFO]'; }
+            if (type === 'success') { color = 'text-emerald-400'; iconClass = 'bi-check-circle-fill'; label = '[SUCCESS]'; }
+            else if (type === 'error') { color = 'text-rose-400'; iconClass = 'bi-x-circle-fill'; label = '[ERROR]'; }
+            else if (type === 'warn') { color = 'text-amber-400'; iconClass = 'bi-exclamation-triangle-fill'; label = '[WARN]'; }
+            else if (type === 'info') { color = 'text-sky-400'; iconClass = 'bi-info-circle-fill'; label = '[INFO]'; }
             
             item.innerHTML = `
                 <span class="text-slate-600 font-mono shrink-0">[${timeStr}]</span>
-                <span class="${color} font-bold shrink-0 font-mono">${prefix}</span>
-                <span class="text-slate-300 font-mono break-all">${escapeHTML(message)}</span>
+                <span class="${color} font-bold shrink-0 font-mono flex items-center gap-1"><i class="bi ${iconClass}"></i> ${label}</span>
+                <span class="text-slate-300 font-mono break-all ml-1">${escapeHTML(message)}</span>
             `;
             
             consoleEl.appendChild(item);
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        let sandboxIframe = null;
+        // BabelによるASTベースの各種クレンジング（静的アンパッカー / 定数折りたたみ / デバッグ除去）
+        function cleanWithBabel(rawCode) {
+            try {
+                const { transform, transformFromAst } = Babel;
+                const t = Babel.types;
 
-        // 解析実行
-        function runSandbox() {
-            const code = inputEditor.getValue().trim();
-            if (!code) {
-                log('実行対象のコードが入力されていません。', 'warn');
-                return;
+                // 1. 文字列配列デコーダーの静的復元と置換を適用するカスタムプラグイン
+                const staticUnpackerPlugin = function({ types: t }) {
+                    return {
+                        visitor: {
+                            Program(programPath) {
+                                let arrayFuncName = "";
+                                let arrayFuncNode = null;
+                                let shiftIIFENode = null;
+                                let decoderFuncName = "";
+                                let decoderFuncNode = null;
+                                let decoderAliasNames = new Set();
+
+                                // 配列関数の特定 (5要素以上の配列を持つプログラム直下の関数)
+                                programPath.traverse({
+                                    FunctionDeclaration(path) {
+                                        if (path.parentPath.type !== 'Program') return;
+                                        const node = path.node;
+                                        let hasLargeArray = false;
+                                        path.traverse({
+                                            VariableDeclarator(vPath) {
+                                                if (vPath.node.init && vPath.node.init.type === 'ArrayExpression') {
+                                                    if (vPath.node.init.elements.length >= 5) {
+                                                        hasLargeArray = true;
+                                                    }
+                                                }
+                                            }
+                                        });
+                                        if (hasLargeArray) {
+                                            arrayFuncName = node.id.name;
+                                            arrayFuncNode = node;
+                                        }
+                                    }
+                                });
+
+                                if (!arrayFuncName) return;
+                                log(`Babel: 文字列配列関数を検出 -> ${arrayFuncName}`, 'info');
+
+                                // 配列シフトIIFEとデコーダーの特定
+                                programPath.traverse({
+                                    ExpressionStatement(path) {
+                                        if (path.parentPath.type !== 'Program') return;
+                                        const expr = path.node.expression;
+                                        // 単一のCallExpressionの場合
+                                        if (expr && expr.type === 'CallExpression') {
+                                            const args = expr.arguments;
+                                            if (args.some(arg => arg.type === 'Identifier' && arg.name === arrayFuncName)) {
+                                                shiftIIFENode = path.node;
+                                            }
+                                        } 
+                                        // カンマ連結(SequenceExpression)の中にIIFEがある場合
+                                        else if (expr && expr.type === 'SequenceExpression') {
+                                            expr.expressions.forEach(subExpr => {
+                                                if (subExpr.type === 'CallExpression') {
+                                                    const args = subExpr.arguments;
+                                                    if (args.some(arg => arg.type === 'Identifier' && arg.name === arrayFuncName)) {
+                                                        shiftIIFENode = subExpr; // CallExpressionノード単体として抽出
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    },
+                                    FunctionDeclaration(path) {
+                                        if (path.parentPath.type !== 'Program') return;
+                                        const node = path.node;
+                                        if (node.id.name === arrayFuncName) return;
+                                        
+                                        let callsArrayFunc = false;
+                                        programPath.traverse({
+                                            CallExpression(innerPath) {
+                                                if (innerPath.node.callee.name === arrayFuncName) {
+                                                    callsArrayFunc = true;
+                                                }
+                                            }
+                                        });
+                                        if (callsArrayFunc) {
+                                            decoderFuncName = node.id.name;
+                                            decoderFuncNode = node;
+                                        }
+                                    }
+                                });
+
+                                if (!decoderFuncName) return;
+                                log(`Babel: デコーダー関数を検出 -> ${decoderFuncName}`, 'info');
+
+                                // エイリアス（別名）の特定
+                                programPath.traverse({
+                                    VariableDeclarator(path) {
+                                        const node = path.node;
+                                        if (node.init && node.init.type === 'Identifier' && node.init.name === decoderFuncName) {
+                                            decoderAliasNames.add(node.id.name);
+                                            log(`Babel: デコーダーの別名を検出 -> ${node.id.name}`, 'info');
+                                        }
+                                    }
+                                });
+
+                                // 安全なコード生成とブラウザ内実体化 (transformFromAst を使用)
+                                try {
+                                    const arrayFuncStr = transformFromAst(t.program([arrayFuncNode]), null, {}).code;
+                                    
+                                    // shiftIIFEがExpressionStatementか、CallExpression単体かでラップ方式を切り分ける
+                                    let shiftIIFEStr = "";
+                                    if (shiftIIFENode) {
+                                        if (shiftIIFENode.type === 'ExpressionStatement') {
+                                            shiftIIFEStr = transformFromAst(t.program([shiftIIFENode]), null, {}).code;
+                                        } else {
+                                            // CallExpression単体ならExpressionStatementに包む
+                                            shiftIIFEStr = transformFromAst(t.program([t.expressionStatement(shiftIIFENode)]), null, {}).code;
+                                        }
+                                    }
+                                    
+                                    const decoderFuncStr = transformFromAst(t.program([decoderFuncNode]), null, {}).code;
+
+                                    const executionCode = `
+                                        (function() {
+                                            ${arrayFuncStr}
+                                            ${shiftIIFEStr}
+                                            ${decoderFuncStr}
+                                            window.__tempDecoder = ${decoderFuncName};
+                                        })();
+                                    `;
+                                    
+                                    eval(executionCode);
+
+                                    if (typeof window.__tempDecoder === 'function') {
+                                        log('Babel: デコード関数をエミュレート。置換を開始...', 'info');
+                                        let replacedCount = 0;
+
+                                        programPath.traverse({
+                                            CallExpression(path) {
+                                                const callee = path.node.callee;
+                                                const isDirectCall = callee.type === 'Identifier' && (callee.name === decoderFuncName || decoderAliasNames.has(callee.name));
+                                                if (isDirectCall) {
+                                                    const args = path.node.arguments;
+                                                    if (args.length > 0) {
+                                                        try {
+                                                            let argVal;
+                                                            if (args[0].type === 'NumericLiteral' || args[0].type === 'StringLiteral') {
+                                                                argVal = args[0].value;
+                                                            } else if (args[0].type === 'BinaryExpression') {
+                                                                const evaluated = path.get('arguments.0').evaluate();
+                                                                if (evaluated.confident) {
+                                                                    argVal = evaluated.value;
+                                                                }
+                                                            }
+
+                                                            if (argVal !== undefined) {
+                                                                const decryptedStr = window.__tempDecoder(argVal);
+                                                                if (typeof decryptedStr === 'string') {
+                                                                    path.replaceWith(t.stringLiteral(decryptedStr));
+                                                                    replacedCount++;
+                                                                }
+                                                            }
+                                                        } catch (e) {}
+                                                    }
+                                                }
+                                            }
+                                        });
+
+                                        log(`Babel: 合計 ${replacedCount} 箇所の難読化文字列を解決・展開。`, 'success');
+
+                                        // 不要になった定義をピンポイントで削除 (カンマ連結されたシフトIIFEを安全に部分除去)
+                                        programPath.traverse({
+                                            FunctionDeclaration(path) {
+                                                if (path.node.id.name === arrayFuncName || path.node.id.name === decoderFuncName) {
+                                                    path.remove();
+                                                }
+                                            },
+                                            CallExpression(path) {
+                                                // 呼び出しの引数に arrayFuncName を持っている CallExpression (シフトIIFE) のみをピンポイントで除去
+                                                const args = path.node.arguments;
+                                                const isShiftIIFE = args.some(arg => arg.type === 'Identifier' && arg.name === arrayFuncName);
+                                                if (isShiftIIFE) {
+                                                    log(`Babel: シフトIIFEを検出して除去しました。`, 'info');
+                                                    path.remove();
+                                                }
+                                            },
+                                            VariableDeclarator(path) {
+                                                const isDecoderDeclaration = path.node.init && path.node.init.type === 'Identifier' && 
+                                                    (path.node.init.name === decoderFuncName || decoderAliasNames.has(path.node.init.name));
+                                                
+                                                if (isDecoderDeclaration) {
+                                                    if (path.parent.declarations.length > 1) {
+                                                        path.remove(); // 単体削除
+                                                    } else {
+                                                        path.parentPath.remove(); // 1つだけならステートメントごと削除
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                    delete window.__tempDecoder;
+                                } catch (e) {
+                                    log('Babel: 静的解決中のエラー: ' + e.message, 'error');
+                                }
+                            }
+                        }
+                    };
+                };
+
+                // その他のプラグイン (定数折りたたみ、アンチデバッグ回避)
+                const otherPlugins = [
+                    // 定数折りたたみ (BinaryExpressionを静的評価)
+                    function({ types: t }) {
+                        return {
+                            visitor: {
+                                BinaryExpression(path) {
+                                    const evaluated = path.evaluate();
+                                    if (evaluated.confident) {
+                                        const value = evaluated.value;
+                                        if (typeof value === 'number') {
+                                            path.replaceWith(t.numericLiteral(value));
+                                        } else if (typeof value === 'string') {
+                                            path.replaceWith(t.stringLiteral(value));
+                                        } else if (typeof value === 'boolean') {
+                                            path.replaceWith(t.booleanLiteral(value));
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    },
+                    // 各種アンチデバッグ回避
+                    function({ types: t }) {
+                        return {
+                            visitor: {
+                                DebuggerStatement(path) {
+                                    path.remove();
+                                },
+                                RegExpLiteral(path) {
+                                    const pattern = path.node.pattern;
+                                    if (pattern.includes('(((.+)+)+)+$')) {
+                                        path.node.pattern = '.*';
+                                    }
+                                },
+                                NewExpression(path) {
+                                    if (t.isIdentifier(path.node.callee, { name: 'RegExp' })) {
+                                        const args = path.node.arguments;
+                                        if (args.length > 0 && t.isStringLiteral(args[0])) {
+                                            const val = args[0].value;
+                                            if (val.includes('(((.+)+)+)+$') || val.includes('sys_')) {
+                                                args[0].value = '.*';
+                                            }
+                                        }
+                                    }
+                                },
+                                CallExpression(path) {
+                                    const callee = path.node.callee;
+                                    if (t.isIdentifier(callee, { name: 'setInterval' }) || t.isIdentifier(callee, { name: 'setTimeout' })) {
+                                        let hasDebugger = false;
+                                        path.traverse({
+                                            DebuggerStatement(innerPath) {
+                                                hasDebugger = true;
+                                            }
+                                        });
+                                        if (hasDebugger) {
+                                            path.remove();
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
+                ];
+
+                // 2段階に分けて変換する (1段階目で文字列展開、2段階目で定数折りたたみ・デバッグ除去)
+                const res1 = transform(rawCode, {
+                    plugins: [staticUnpackerPlugin],
+                    compact: false,
+                    retainLines: true
+                });
+
+                const res2 = transform(res1.code, {
+                    plugins: otherPlugins,
+                    compact: false,
+                    retainLines: true
+                });
+
+                return res2.code;
+            } catch (err) {
+                log('Babel: ASTクレンジング処理でエラーが発生しました。 ' + err.message, 'error');
+                return rawCode;
             }
+        }
 
-            stopSandbox(); // 以前のインスタンスを削除
+        let sandboxIframe = null;
+        let isLoopRunning = false;
+        let iterationCount = 0;
+        const maxIterations = 8; // 無限ループ防止閾値
 
-            log('フック用サンドボックス（iframe）の構築を開始します...', 'info');
+        // 1回分の解析と結果待機
+        function runSingleDeobfuscateStep(code) {
+            return new Promise((resolve) => {
+                let resolved = false;
+
+                // タイムアウト設定 (1.8秒間フックに何もかからなければ動的終了と判定)
+                const timeoutId = setTimeout(() => {
+                    if (!resolved) {
+                        resolved = true;
+                        cleanup();
+                        resolve(null);
+                    }
+                }, 1800);
+
+                function messageListener(event) {
+                    const data = event.data;
+                    if (!data) return;
+
+                    if (data.type === 'deobfuscated') {
+                        if (!resolved) {
+                            resolved = true;
+                            clearTimeout(timeoutId);
+                            cleanup();
+                            // キャプチャされたコードをBabel静的クレンジングして返す
+                            const cleanResult = cleanWithBabel(data.code);
+                            resolve(cleanResult);
+                        }
+                    } else if (data.type === 'log') {
+                        log(data.message, data.level);
+                    }
+                }
+
+                window.addEventListener('message', messageListener);
+
+                function cleanup() {
+                    window.removeEventListener('message', messageListener);
+                    stopSandbox();
+                }
+
+                executeInSandbox(code);
+            });
+        }
+
+        // サンドボックス起動
+        function executeInSandbox(code) {
+            // 実行前にBabelクレンジング（静的アンパック含む）を通す
+            const sanitizedCode = cleanWithBabel(code);
 
             sandboxIframe = document.createElement('iframe');
             sandboxIframe.id = 'sandbox-iframe';
             sandboxIframe.style.display = 'none';
-            // セキュリティ確保のための sandbox 属性（scriptのみ許可）
-            sandboxIframe.setAttribute('sandbox', 'allow-scripts');
+            sandboxIframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
             document.body.appendChild(sandboxIframe);
 
             const iframeDoc = sandboxIframe.contentWindow.document;
 
-            // フックスクリプト生成
-            const hookScript = `
-                <script>
-                    (function() {
-                        const originalFunction = window.Function;
-                        const originalEval = window.eval;
-                        const originalSetInterval = window.setInterval;
-                        const originalSetTimeout = window.setTimeout;
-
-                        function sendToParent(type, payload) {
-                            window.parent.postMessage({ type: type, ...payload }, '*');
-                        }
-
-                        // コード捕獲ハンドラ
-                        function handleCapturedCode(rawCode) {
-                            if (typeof rawCode === 'string' && rawCode.trim().length > 0) {
-                                // debugger ステートメントの除去
-                                const bypassedCode = rawCode.replace(/\\bdebugger\\b/g, '/* debugger bypassed */');
-                                sendToParent('deobfuscated', { code: bypassedCode });
-                            }
-                        }
-
-                        // 1. Function / Constructor フック
-                        const functionHook = function(...args) {
-                            if (args.length > 0) {
-                                const lastArg = args[args.length - 1];
-                                handleCapturedCode(lastArg);
-                                if (typeof lastArg === 'string') {
-                                    args[args.length - 1] = lastArg.replace(/\\bdebugger\\b/g, '/* debugger bypassed */');
-                                }
-                            }
-                            return originalFunction.apply(this, args);
-                        };
-
-                        Object.defineProperty(Function.prototype, 'constructor', {
-                            value: functionHook,
-                            writable: true,
-                            configurable: true
-                        });
-                        window.Function = functionHook;
-
-                        // 2. eval フック
-                        window.eval = function(code) {
-                            handleCapturedCode(code);
-                            if (typeof code === 'string') {
-                                return originalEval(code.replace(/\\bdebugger\\b/g, '/* debugger bypassed */'));
-                            }
-                            return originalEval(code);
-                        };
-
-                        // 3. タイマー経由の debugger 回避
-                        window.setInterval = function(fn, delay, ...args) {
-                            const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
-                            if (fnStr.includes('debugger')) {
-                                sendToParent('log', { message: 'setInterval による無限デバッガーループを破棄しました。', level: 'warn' });
-                                return 0;
-                            }
-                            return originalSetInterval(fn, delay, ...args);
-                        };
-
-                        window.setTimeout = function(fn, delay, ...args) {
-                            const fnStr = typeof fn === 'function' ? fn.toString() : String(fn);
-                            if (fnStr.includes('debugger')) {
-                                sendToParent('log', { message: 'setTimeout による無限デバッガーループを破棄しました。', level: 'warn' });
-                                return 0;
-                            }
-                            return originalSetTimeout(fn, delay, ...args);
-                        };
-
-                        // 4. RegExp による整合性チェック (自己改変・フォーマット崩れ検証) 回避
-                        const originalRegExp = window.RegExp;
-                        window.RegExp = function(pattern, flags) {
-                            if (typeof pattern === 'string' && (pattern.includes('toString') || pattern.includes('(((.+)+)+)+$') || pattern.includes('filter'))) {
-                                sendToParent('log', { message: 'RegExp 整合性テストを検出。ダミー条件に変更します。', level: 'warn' });
-                                return originalRegExp('.*', flags);
-                            }
-                            return originalRegExp(pattern, flags);
-                        };
-
-                        // 5. String.prototype.search による整合性回避
-                        const originalSearch = String.prototype.search;
-                        String.prototype.search = function(regexp) {
-                            const searchStr = typeof regexp === 'string' ? regexp : (regexp instanceof RegExp ? regexp.source : '');
-                            if (searchStr.includes('(((.+)+)+)+$') || searchStr.includes('sys_2sdwcvh1x5m')) {
-                                sendToParent('log', { message: 'search() による検証チェックをバイパスしました。', level: 'warn' });
-                                return 0; // マッチに成功した状態を擬装
-                            }
-                            return originalSearch.apply(this, arguments);
-                        };
-
-                        // 6. RegExp.prototype.test による整合性回避
-                        const originalTest = RegExp.prototype.test;
-                        RegExp.prototype.test = function(str) {
-                            if (this.toString().includes('(((.+)+)+)+$')) {
-                                sendToParent('log', { message: 'test() による検証チェックをバイパスしました。', level: 'warn' });
-                                return true; // 合格扱いにする
-                            }
-                            return originalTest.apply(this, arguments);
-                        };
-
-                        window.addEventListener('error', function(e) {
-                            sendToParent('log', { message: 'サンドボックス内で例外を検知: ' + e.message, level: 'error' });
-                        });
-
-                        sendToParent('log', { message: '安全機構をマウントしました。実行フェーズへ移行します。', level: 'info' });
-                    })();
-                <\/script>
-            `;
-
-            // ユーザー難読化コード実行
-            const userScript = `
-                <script>
-                    try {
-                        ${code}
-                        sendToParent('log', { message: 'コード実行処理が終了しました。', level: 'info' });
-                    } catch (err) {
-                        sendToParent('log', { message: '実行中断（エラー発生）: ' + err.message, level: 'error' });
-                    }
-                <\/script>
-            `;
-
             iframeDoc.open();
-            iframeDoc.write(hookScript + userScript);
+            iframeDoc.write('<!DOCTYPE html><html><head></head><body></body></html>');
             iframeDoc.close();
+
+            const hookScript = iframeDoc.createElement('script');
+            hookScript.textContent = `
+                (function() {
+                    const originalFunction = window.Function;
+                    const originalEval = window.eval;
+                    const originalToString = Function.prototype.toString;
+
+                    window.sendToParent = function(type, payload) {
+                        window.parent.postMessage(Object.assign({ type: type }, payload), '*');
+                    };
+
+                    function handleCapturedCode(rawCode) {
+                        if (typeof rawCode === 'string' && rawCode.trim().length > 0) {
+                            window.sendToParent('deobfuscated', { code: rawCode });
+                        }
+                    }
+
+                    // --- [Self Defending 回避] ---
+                    Function.prototype.toString = function() {
+                        const str = originalToString.call(this);
+                        if (this === Function.prototype.toString) {
+                            return originalToString.call(originalToString);
+                        }
+                        if (typeof this === 'function' && !str.includes('[native code]')) {
+                            return str.replace(/\\r?\\n/g, '').replace(/\\s+/g, ' ');
+                        }
+                        return str;
+                    };
+
+                    // Function フック
+                    const functionHook = function(...args) {
+                        if (args.length > 0) {
+                            handleCapturedCode(args[args.length - 1]);
+                        }
+                        if (new.target) {
+                            return Reflect.construct(originalFunction, args, new.target);
+                        }
+                        return originalFunction(...args);
+                    };
+
+                    Object.defineProperty(Function.prototype, 'constructor', {
+                        value: functionHook,
+                        writable: true,
+                        configurable: true
+                    });
+                    window.Function = functionHook;
+
+                    // eval フック
+                    window.eval = function(code) {
+                        handleCapturedCode(code);
+                        return originalEval(code);
+                    };
+
+                    const originalSearch = String.prototype.search;
+                    String.prototype.search = function(regexp) {
+                        const searchStr = typeof regexp === 'string' ? regexp : (regexp instanceof RegExp ? regexp.source : '');
+                        if (searchStr.includes('(((.+)+)+)+$') || searchStr.includes('sys_')) {
+                            window.sendToParent('log', { message: 'Hook: search() の自己防御を回避しました。', level: 'warn' });
+                            return 0; 
+                        }
+                        return originalSearch.apply(this, arguments);
+                    };
+
+                    const originalTest = RegExp.prototype.test;
+                    RegExp.prototype.test = function(str) {
+                        if (this.toString().includes('(((.+)+)+)+$')) {
+                            window.sendToParent('log', { message: 'Hook: test() の自己防御を回避しました。', level: 'warn' });
+                            return true;
+                        }
+                        return originalTest.apply(this, arguments);
+                    };
+
+                    window.addEventListener('error', function(e) {
+                        window.sendToParent('log', { message: 'サンドボックス内エラー: ' + e.message, level: 'error' });
+                    });
+
+                    window.sendToParent('log', { message: 'フック環境の準備完了。実行します。', level: 'info' });
+                })();
+            `;
+            iframeDoc.body.appendChild(hookScript);
+
+            const userScriptElement = iframeDoc.createElement('script');
+            userScriptElement.textContent = `
+                try {
+                    ${sanitizedCode}
+                } catch (err) {
+                    window.sendToParent('log', { message: '実行中断（例外）: ' + err.message, level: 'error' });
+                }
+            `;
+            iframeDoc.body.appendChild(userScriptElement);
         }
 
-        // サンドボックス停止
+        // 自動ループ解析の開始
+        async function startAutoDeobfuscateLoop() {
+            const initialCode = inputEditor.getValue().trim();
+            if (!initialCode) {
+                log('実行対象のコードが入力されていません。', 'warn');
+                return;
+            }
+
+            isLoopRunning = true;
+            iterationCount = 0;
+            let lastCode = initialCode;
+            let currentIterationCode = initialCode;
+
+            log('--- 静的・動的ハイブリッド自動解析を開始 ---', 'info');
+
+            while (isLoopRunning && iterationCount < maxIterations) {
+                iterationCount++;
+                log(`[Phase ${iterationCount}] 解析を開始します...`, 'info');
+
+                // 1ステップ（静的Babel + 動的Sandboxフック）実行
+                const stepResult = await runSingleDeobfuscateStep(currentIterationCode);
+
+                // もし動的フックに何もかからなかった場合、または最初の静的アンパックだけで
+                // 完全にコードが展開された場合のフェールセーフ
+                const currentUnpackedCode = cleanWithBabel(currentIterationCode);
+
+                if (!stepResult) {
+                    log(`[Phase ${iterationCount}] 解析完了。静的アンパッカーおよび定数折りたたみを適用します。`, 'success');
+                    outputEditor.setValue(currentUnpackedCode);
+                    formatOutput();
+                    break;
+                }
+
+                // 変化がなくなったか判定 (スペース排除して比較)
+                const normalizedLast = lastCode.replace(/\s+/g, '');
+                const normalizedNext = stepResult.replace(/\s+/g, '');
+
+                if (normalizedLast === normalizedNext) {
+                    log(`[Phase ${iterationCount}] 出力にこれ以上の変化はありません。解析を完了します。`, 'success');
+                    break;
+                }
+
+                log(`[Phase ${iterationCount}] レイヤーの解読に成功。さらに下層を自動解析します。`, 'success');
+                lastCode = stepResult;
+                currentIterationCode = stepResult;
+
+                outputEditor.setValue(stepResult);
+                formatOutput();
+
+                // UIフリーズ防止
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+
+            isLoopRunning = false;
+            log('--- すべての自動展開・解析が終了しました ---', 'success');
+        }
+
+        // サンドボックス消去
         function stopSandbox() {
             if (sandboxIframe) {
                 sandboxIframe.remove();
                 sandboxIframe = null;
-                log('稼働中のサンドボックス（iframe）をリセットしました。', 'info');
             }
         }
 
         // コード整形
         function formatOutput() {
             const code = outputEditor.getValue();
-            if (!code) {
-                log('整形対象のコードが出力エリアにありません。', 'warn');
-                return;
-            }
+            if (!code) return;
             try {
                 const formatted = js_beautify(code, {
                     indent_size: 2,
@@ -328,31 +690,24 @@
                     unescape_strings: true
                 });
                 outputEditor.setValue(formatted);
-                log('コードの整形を実行しました。', 'success');
             } catch (err) {
-                log('コードの整形中にエラーが発生しました。', 'error');
+                log('整形でエラーが発生しました。', 'error');
             }
         }
 
-        // 親ウィンドウ側メッセージ受信リスナー
-        window.addEventListener('message', function(event) {
-            const data = event.data;
-            if (!data) return;
-
-            if (data.type === 'deobfuscated') {
-                log('難読化解除されたコードがインターセプトされました！', 'success');
-                outputEditor.setValue(data.code);
-                formatOutput(); // 自動的に整形
-            } else if (data.type === 'log') {
-                log(data.message, data.level);
-            }
-        });
-
-        // ボタンのクリックイベント群
-        document.getElementById('btn-run').addEventListener('click', runSandbox);
-        document.getElementById('btn-stop').addEventListener('click', stopSandbox);
+        // イベントリスナー群
+        document.getElementById('btn-run').addEventListener('click', startAutoDeobfuscateLoop);
         
-        document.getElementById('btn-beautify').addEventListener('click', formatOutput);
+        document.getElementById('btn-stop').addEventListener('click', () => {
+            isLoopRunning = false;
+            stopSandbox();
+            log('稼働中の解析ループおよびサンドボックスを強制停止しました。', 'warn');
+        });
+        
+        document.getElementById('btn-beautify').addEventListener('click', () => {
+            formatOutput();
+            log('コードの整形を実行しました。', 'success');
+        });
 
         document.getElementById('btn-clear').addEventListener('click', () => {
             inputEditor.setValue('');
@@ -363,7 +718,7 @@
             const code = outputEditor.getValue();
             if (code) {
                 navigator.clipboard.writeText(code);
-                log('出力コードをクリップボードにコピーしました。', 'success');
+                log('出力コードをコピーしました。', 'success');
             } else {
                 log('コピーするコードがありません。', 'warn');
             }
@@ -374,7 +729,7 @@
             if (code) {
                 inputEditor.setValue(code);
                 outputEditor.setValue('');
-                log('結果を入力エリアに転送しました。追加の難読化レイヤーを解除できます。', 'info');
+                log('結果を入力エリアに転送しました。', 'info');
             } else {
                 log('転送するコードがありません。', 'warn');
             }
